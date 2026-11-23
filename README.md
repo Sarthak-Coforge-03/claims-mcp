@@ -28,6 +28,8 @@ docker compose run --rm dev uv run pytest
 | Run all tests | `docker compose run --rm dev uv run pytest` |
 | Run one test | `docker compose run --rm dev uv run pytest tests/test_sanity.py::test_sanity_always_passes` |
 | HTML coverage report | `docker compose run --rm dev uv run pytest --cov-report=html`, then open `htmlcov/index.html` |
+| Lint + auto-fix | `docker compose run --rm dev uv run ruff check --fix .` |
+| Format code | `docker compose run --rm dev uv run ruff format .` |
 | Shell inside the container | `docker compose run --rm dev bash` |
 | Run the entry point | `docker compose run --rm dev uv run claims-mcp` |
 

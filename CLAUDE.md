@@ -17,7 +17,7 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 ## Conventions
 - **TDD:** write the failing test first, then the code to make it pass. Build order: test → plain function → wrap as MCP tool → call via client. Unit tests hit functions directly, not the MCP protocol; cover normal and edge cases (e.g. unknown employee ID).
 - Readability over concision: descriptive names, docstrings on every function and test, no `*`/`**` unpacking or multi-name unpacking of results.
-- Never read or print `.env` files (`ANTHROPIC_API_KEY` lives there); `.env.example` is fine. Hooks in `.claude/`: `block-env.sh` blocks `.env*` access, `run-tests.sh` runs pytest after any `.py` edit.
+- Never read or print `.env` files (`ANTHROPIC_API_KEY` lives there); `.env.example` is fine. Hooks in `.claude/`: `block-env.sh` blocks `.env*` access; after any `.py` edit `run-ruff.sh` formats + lints (ruff), `run-tests.sh` / `run-tests-docker.sh` run pytest on host / in Docker.
 
 ## Commands (develop in Docker; `uv` manages deps)
 - Docker: `docker compose build` (again after dep changes) · tests: `docker compose run --rm dev uv run pytest` · shell: `docker compose run --rm dev bash`
@@ -25,6 +25,6 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 - Run entry point: `uv run claims-mcp` (`claims_mcp:main`, exported from `src/claims_mcp/__init__.py`)
 - Tests (`tests/`): `uv run pytest` · single: `uv run pytest path/to/test_file.py::test_name`
 - Coverage (pytest-cov, branch) prints on every run; HTML report: `uv run pytest --cov-report=html` → `htmlcov/`
-- CI: GitHub Actions runs `uv sync` + `uv run pytest` (to be added).
+- Lint/format (ruff, config in `pyproject.toml`): `uv run ruff check --fix . && uv run ruff format .`
 
 Python 3.12, `uv_build` backend, src layout under `src/claims_mcp/`.

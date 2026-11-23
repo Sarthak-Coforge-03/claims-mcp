@@ -7,7 +7,9 @@ authors = [
     { name = "Sarthak-Coforge-03", email = "sarthak.kakkar@coforge.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "mcp>=2.3.0",
+]
 
 [project.scripts]
 claims-mcp = "claims_mcp:main"

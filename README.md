@@ -71,11 +71,23 @@ uv run pytest        # tests + coverage
 - Tests live in `tests/` and run with pytest. Coverage (line and branch, via pytest-cov) is printed on every run. It is configured in `pyproject.toml`.
 - Development follows TDD: write the failing test first, then the code to make it pass.
 
+## Continuous integration
+
+Both workflows run **only on pull requests** (opened, new commits, reopened):
+
+| Workflow | What it does |
+|----------|--------------|
+| [`ci.yml`](.github/workflows/ci.yml) | Builds the `dev` Docker image, then runs `ruff check`, `ruff format --check` and `pytest` inside it, the same commands as locally. |
+| [`claude-review.yml`](.github/workflows/claude-review.yml) | Claude reviews the PR and leaves inline comments plus one summary comment. |
+
+One-time setup for the Claude review: install the Claude GitHub App and add an `ANTHROPIC_API_KEY` repository secret. Running `/install-github-app` in Claude Code does both.
+
 ## Project layout
 
 ```
-src/claims_mcp/   package code (MCP server and agent will live here)
-tests/            unit tests
-Dockerfile        dev image
-compose.yaml      dev container definition
+src/claims_mcp/     package code (MCP server and agent will live here)
+tests/              unit tests
+Dockerfile          dev image (multi-stage: base → dev)
+compose.yaml        dev container definition
+.github/workflows/  CI (tests) and Claude PR review
 ```

@@ -23,6 +23,7 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 - Sync env: `uv sync` · Add dep: `uv add <pkg>` (dev: `uv add --dev <pkg>`)
 - Run entry point: `uv run claims-mcp` (`claims_mcp:main`, exported from `src/claims_mcp/__init__.py`)
 - Tests (`tests/`): `uv run pytest` · single: `uv run pytest path/to/test_file.py::test_name`
+- Coverage (pytest-cov, branch) prints on every run; HTML report: `uv run pytest --cov-report=html` → `htmlcov/`
 - CI: GitHub Actions runs `uv sync` + `uv run pytest` (to be added).
 
 Python 3.12, `uv_build` backend, src layout under `src/claims_mcp/`.

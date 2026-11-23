@@ -15,14 +15,14 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 - Policy rules and escalation triggers are defined in `docs/requirements.md`.
 
 ## Conventions
-- Build order: plain function → unit test → wrap as MCP tool → call via client. Unit tests hit functions directly, not the MCP protocol; cover normal and edge cases (e.g. unknown employee ID).
+- **TDD:** write the failing test first, then the code to make it pass. Build order: test → plain function → wrap as MCP tool → call via client. Unit tests hit functions directly, not the MCP protocol; cover normal and edge cases (e.g. unknown employee ID).
 - Readability over concision: descriptive names, docstrings on every function and test, no `*`/`**` unpacking or multi-name unpacking of results.
-- Never read or print `.env` files (`ANTHROPIC_API_KEY` lives there); `.env.example` is fine.
+- Never read or print `.env` files (`ANTHROPIC_API_KEY` lives there); `.env.example` is fine. Hooks in `.claude/`: `block-env.sh` blocks `.env*` access, `run-tests.sh` runs pytest after any `.py` edit.
 
 ## Commands (`uv` for everything)
 - Sync env: `uv sync` · Add dep: `uv add <pkg>` (dev: `uv add --dev <pkg>`)
 - Run entry point: `uv run claims-mcp` (`claims_mcp:main`, exported from `src/claims_mcp/__init__.py`)
-- Tests: `uv run pytest` · single: `uv run pytest path/to/test_file.py::test_name`
+- Tests (`tests/`): `uv run pytest` · single: `uv run pytest path/to/test_file.py::test_name`
 - CI: GitHub Actions runs `uv sync` + `uv run pytest` (to be added).
 
 Python 3.12, `uv_build` backend, src layout under `src/claims_mcp/`.

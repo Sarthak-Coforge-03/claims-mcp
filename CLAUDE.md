@@ -19,8 +19,9 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 - Readability over concision: descriptive names, docstrings on every function and test, no `*`/`**` unpacking or multi-name unpacking of results.
 - Never read or print `.env` files (`ANTHROPIC_API_KEY` lives there); `.env.example` is fine. Hooks in `.claude/`: `block-env.sh` blocks `.env*` access, `run-tests.sh` runs pytest after any `.py` edit.
 
-## Commands (`uv` for everything)
-- Sync env: `uv sync` · Add dep: `uv add <pkg>` (dev: `uv add --dev <pkg>`)
+## Commands (develop in Docker; `uv` manages deps)
+- Docker: `docker compose build` (again after dep changes) · tests: `docker compose run --rm dev uv run pytest` · shell: `docker compose run --rm dev bash`
+- Sync env: `uv sync` · Add dep on host: `uv add <pkg>` (dev: `uv add --dev <pkg>`), then rebuild
 - Run entry point: `uv run claims-mcp` (`claims_mcp:main`, exported from `src/claims_mcp/__init__.py`)
 - Tests (`tests/`): `uv run pytest` · single: `uv run pytest path/to/test_file.py::test_name`
 - Coverage (pytest-cov, branch) prints on every run; HTML report: `uv run pytest --cov-report=html` → `htmlcov/`

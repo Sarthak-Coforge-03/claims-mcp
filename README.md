@@ -1,1 +1,79 @@
 # claims-mcp
+
+An internal **IT equipment request handler**. An MCP server exposes tools over mock employee and policy data. A ReAct agent then uses those tools to approve or deny equipment requests, or to escalate unclear ones to a human reviewer.
+
+> Status: early setup. The project, the test tooling and the Docker dev environment are in place. The MCP server and the agent are not built yet.
+
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Docker with Compose v2). This is the main way to develop and run the project.
+- [uv](https://docs.astral.sh/uv/) 0.12.x on your machine. You need it to add dependencies and for editor autocomplete.
+
+## Quick start (Docker)
+
+```bash
+# 1. Build the dev image (installs the locked dependencies from uv.lock)
+docker compose build
+
+# 2. Run the test suite inside the container (prints a coverage report)
+docker compose run --rm dev uv run pytest
+```
+
+`docker compose run --rm dev <command>` runs any command in a throwaway container and removes the container when the command finishes.
+
+## Everyday usage
+
+| Task | Command |
+|------|---------|
+| Run all tests | `docker compose run --rm dev uv run pytest` |
+| Run one test | `docker compose run --rm dev uv run pytest tests/test_sanity.py::test_sanity_always_passes` |
+| HTML coverage report | `docker compose run --rm dev uv run pytest --cov-report=html`, then open `htmlcov/index.html` |
+| Shell inside the container | `docker compose run --rm dev bash` |
+| Run the entry point | `docker compose run --rm dev uv run claims-mcp` |
+
+### Editing code
+
+The repo is mounted into the container at `/app`, so changes you make on your machine show up in the container straight away. **No rebuild is needed for code changes.**
+
+### Adding a dependency
+
+Dependencies are managed with uv on your machine. Rebuild the image afterwards:
+
+```bash
+uv add <package>          # runtime dependency
+uv add --dev <package>    # dev-only (tests, tooling)
+docker compose build      # bake the new lockfile into the image
+```
+
+Commit both `pyproject.toml` and `uv.lock`.
+
+## How the Docker setup works
+
+| File | Purpose |
+|------|---------|
+| [`Dockerfile`](Dockerfile) | Multi-stage build. **`base`**: Python 3.12-slim, uv and runtime dependencies, with no code or dev tools. **`dev`**: base plus dev dependencies, source and tests. Dependencies are installed in cached layers before code is copied. The virtualenv lives at `/opt/venv`, outside the mounted `/app`. |
+| [`compose.yaml`](compose.yaml) | One `dev` service: builds the `dev` stage and mounts the repo at `/app`. |
+| [`.dockerignore`](.dockerignore) | Keeps the local `.venv`, `.git`, secrets (`.env*`) and generated files out of the image. |
+
+Both files are commented line by line; read them for the details.
+
+## Running without Docker (optional)
+
+```bash
+uv sync              # create .venv and install everything
+uv run pytest        # tests + coverage
+```
+
+## Tests and coverage
+
+- Tests live in `tests/` and run with pytest. Coverage (line and branch, via pytest-cov) is printed on every run. It is configured in `pyproject.toml`.
+- Development follows TDD: write the failing test first, then the code to make it pass.
+
+## Project layout
+
+```
+src/claims_mcp/   package code (MCP server and agent will live here)
+tests/            unit tests
+Dockerfile        dev image
+compose.yaml      dev container definition
+```

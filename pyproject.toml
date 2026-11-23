@@ -1,0 +1,46 @@
+[project]
+name = "claims-mcp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Sarthak-Coforge-03", email = "sarthak.kakkar@coforge.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+claims-mcp = "claims_mcp:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/W: pycodestyle errors and warnings · F: pyflakes (unused imports, undefined names)
+# I: import sorting · B: bugbear (likely bugs) · UP: modern Python syntax for 3.12
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["src/claims_mcp"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+# fail_under = 80   # turn on once the four tools and their tests exist

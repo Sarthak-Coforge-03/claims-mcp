@@ -1,0 +1,23 @@
+# Docker Compose: describes how to run containers for this project, so you type
+# `docker compose run --rm dev <command>` instead of a long `docker run ...` line.
+# One service for now; add more (e.g. a separate server or agent) only when needed.
+
+services:
+  # "dev" is the container we develop and test in.
+  dev:
+    # Build from the Dockerfile in this folder, stopping at the "dev" stage
+    # (base + dev tools + code). Other services can later pick other stages.
+    build:
+      context: .
+      target: dev
+    # Name for the built image, so it shows up readable in `docker images`.
+    image: claims-mcp-dev
+    volumes:
+      # Bind mount: the host repo appears at /app inside the container. Edits made on the
+      # host are visible immediately, with no rebuild. Rebuild only when dependencies change.
+      # The venv lives in /opt/venv (see Dockerfile), so this mount does not hide it.
+      - .:/app
+    # Later, at the agent step, the API key gets loaded from a local env file here, e.g.:
+    # env_file:
+    #   - path: .env
+    #     required: false

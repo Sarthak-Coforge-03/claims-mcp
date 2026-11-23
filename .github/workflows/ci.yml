@@ -1,0 +1,39 @@
+# CI: lint and test every pull request inside the same Docker image used for development.
+name: CI
+
+# Run only on pull requests (opened, new commits pushed, reopened) — not on direct pushes.
+on:
+  pull_request:
+
+# Cancel an older run for the same PR when a newer commit arrives, so only the latest is checked.
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Least privilege: this workflow only needs to read the code.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint and test (Docker)
+    runs-on: ubuntu-latest
+    steps:
+      # Get the PR's code onto the runner.
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Build the `dev` stage from the Dockerfile, exactly as `docker compose build` does locally.
+      - name: Build dev image
+        run: docker compose build
+
+      # Lint: fail if ruff finds problems or if any file is not formatted.
+      - name: Ruff lint
+        run: docker compose run --rm dev uv run ruff check .
+
+      - name: Ruff format check
+        run: docker compose run --rm dev uv run ruff format --check .
+
+      # Unit tests with coverage (coverage settings come from pyproject.toml).
+      - name: Run tests
+        run: docker compose run --rm dev uv run pytest

@@ -6,7 +6,7 @@ Guidance for Claude Code (claude.ai/code) in this repository.
 An internal **IT equipment request handler**: an MCP server over mock employee/policy data, plus a ReAct agent (MCP client, Claude via `anthropic` SDK) that approves, denies, or escalates requests. Repo name says "claims" but the domain is equipment requests.
 
 ## Target architecture (in progress — update as it lands)
-- MCP tools (each a thin wrapper over a plain, unit-tested function):
+- MCP tools in `mcp_server/server.py`, each a thin wrapper over a unit-tested backend service method (`get_employee_info` → `EmployeeService`; the rest to come):
   - `get_employee_info(employee_id)` → role, tenure, equipment on file
   - `get_policy_limits(role)` → eligible items and refresh intervals
   - `check_request_eligibility(employee_id, item)` → within policy or not
@@ -27,4 +27,4 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 - Coverage (pytest-cov, branch) prints on every run; HTML report: `uv run pytest --cov-report=html` → `htmlcov/`
 - Lint/format (ruff, config in `pyproject.toml`): `uv run ruff check --fix . && uv run ruff format .`
 
-Python 3.12, `uv_build` backend, src layout under `src/claims_mcp/`.
+Python 3.12, `uv_build`. Layers in `src/claims_mcp/`: `backend/` (`models/`, `repositories/` = `*_base.py` ABC + JSON/in-memory impls, ORM later; `services/`; never imports MCP) · `mcp_server/` (MCP adapter; run: `python -m claims_mcp.mcp_server.server`) · `client/` (MCP client code; smoke check: `uv run python -m claims_mcp.client.smoke_client`) · `agent/` (later). `client/` and `agent/` reach the backend only via MCP. One class per file, base classes in their own file, no folder per class.

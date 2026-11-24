@@ -34,6 +34,12 @@ target-version = "py312"
 # I: import sorting · B: bugbear (likely bugs) · UP: modern Python syntax for 3.12
 select = ["E", "W", "F", "I", "B", "UP"]
 
+[tool.ruff.lint.isort]
+# Always sort our own package into the first-party import group. Without this, ruff guesses
+# from what exists on disk, so a test written before its module (TDD) gets its imports
+# grouped as third-party and then flagged once the module exists.
+known-first-party = ["claims_mcp"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--cov --cov-report=term-missing"

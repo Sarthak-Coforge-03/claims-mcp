@@ -1,0 +1,61 @@
+{
+  "employees": [
+    {
+      "employee_id": "E001",
+      "name": "Priya Sharma",
+      "role": "standard",
+      "hire_date": "2019-04-01",
+      "equipment": [
+        { "item": "laptop", "issued_date": "2022-05-10" },
+        { "item": "monitor", "issued_date": "2021-02-15" }
+      ]
+    },
+    {
+      "employee_id": "E002",
+      "name": "Marcus Lee",
+      "role": "standard",
+      "hire_date": "2021-09-13",
+      "equipment": [
+        { "item": "laptop", "issued_date": "2025-08-20" },
+        { "item": "monitor", "issued_date": "2025-08-20" }
+      ]
+    },
+    {
+      "employee_id": "E003",
+      "name": "Elena Rossi",
+      "role": "manager",
+      "hire_date": "2016-01-11",
+      "equipment": [
+        { "item": "laptop", "issued_date": "2024-03-04" },
+        { "item": "monitor", "issued_date": "2023-07-19" },
+        { "item": "monitor", "issued_date": "2023-07-19" }
+      ]
+    },
+    {
+      "employee_id": "E004",
+      "name": "Tomás García",
+      "role": "manager",
+      "hire_date": "2018-06-25",
+      "equipment": [
+        { "item": "laptop", "issued_date": "2022-11-30" },
+        { "item": "monitor", "issued_date": "2022-11-30" }
+      ]
+    },
+    {
+      "employee_id": "E005",
+      "name": "Aisha Okafor",
+      "role": "standard",
+      "hire_date": "2026-10-05",
+      "equipment": [
+        { "item": "laptop", "issued_date": "2026-10-05" }
+      ]
+    },
+    {
+      "employee_id": "E006",
+      "name": "Daniel Novak",
+      "role": "contractor",
+      "hire_date": "2025-02-17",
+      "equipment": []
+    }
+  ]
+}

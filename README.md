@@ -88,6 +88,7 @@ One-time setup for the Claude review: install the Claude GitHub App and add an `
 src/claims_mcp/
   backend/          business domain, no MCP: models/, repositories/ (JSON now, ORM later), services/
   mcp_server/       MCP server exposing backend services as tools
+  client/           MCP client code; smoke check: uv run python -m claims_mcp.client.smoke_client
   agent/            (coming) ReAct agent; talks to the backend only through MCP
 data/               temporary mock data (employees.json)
 tests/              unit tests, mirroring src/ (tests/backend/...)

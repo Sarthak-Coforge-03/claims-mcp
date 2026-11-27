@@ -10,6 +10,8 @@ from claims_mcp.host.llm.models.tool_result import ToolResult
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
 from claims_mcp.host.react.views import build_act_view, build_observe_view, build_think_view
 from claims_mcp.host.state.agent_state import AgentState
+from claims_mcp.host.state.plan import Plan
+from claims_mcp.host.state.plan_source import PlanSource
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.thought import Thought
 from claims_mcp.host.state.thought_decision import ThoughtDecision
@@ -79,6 +81,23 @@ def test_think_view_shows_observations_but_not_raw_tool_results():
 
     assert LOOKUP_OBSERVATION in think_view
     assert LOOKUP_RESULT not in think_view
+
+
+def test_think_view_shows_the_plan_with_its_source_when_set():
+    """With a plan in the state, THINK's view holds it under a heading naming its template."""
+    state = build_state([])
+    state.plan = Plan(
+        source=PlanSource.MCP_TEMPLATE,
+        template_name="replacement_request",
+        text="- Call check_request_eligibility(employee_id, item).",
+    )
+
+    think_view = build_think_view(state)
+
+    assert (
+        "Plan (from MCP template replacement_request):\n"
+        "- Call check_request_eligibility(employee_id, item)."
+    ) in think_view
 
 
 def test_act_view_shows_only_request_and_current_next_action():

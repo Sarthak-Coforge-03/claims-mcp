@@ -1,7 +1,7 @@
 """Views: the slice of AgentState each phase is shown, rendered as its one user message.
 
 What a view leaves out is as deliberate as what it shows:
-- THINK sees every step's interpretation (observation), never the raw tool results.
+- THINK sees the plan and every step's interpretation (observation), never raw tool results.
 - ACT sees only the request and the action THINK chose, so it can't decide anything else.
 - OBSERVE sees only the current call and its raw result, so it reads that result alone.
 """
@@ -11,28 +11,48 @@ import json
 from claims_mcp.host.llm.models.tool_call import ToolCall
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
 from claims_mcp.host.state.agent_state import AgentState
+from claims_mcp.host.state.plan import Plan
+from claims_mcp.host.state.plan_source import PlanSource
 from claims_mcp.host.state.react_step import ReActStep
 
 NO_STEPS_YET = "Steps so far: none yet."
 
 
 def build_think_view(state: AgentState) -> str:
-    """Return THINK's view: request, today, tool catalog and every earlier step's reading.
+    """Return THINK's view: request, today, tool catalog, the plan, every earlier step's reading.
 
     Args:
         state: The run state.
 
     Returns:
-        Text sections: request, today's date, available tools, then the steps so far
-        (thought, action, action error, observation; raw tool results are left out).
+        Text sections: request, today's date, available tools, the plan if one was made, then
+        the steps so far (thought, action, action error, observation; no raw tool results).
     """
     sections = [
         f"Request: {state.request}",
         f"Today: {state.today.isoformat()}",
         render_tool_catalog(state.tool_specs),
-        render_steps_for_think(state.steps),
     ]
+    if state.plan is not None:
+        sections.append(render_plan(state.plan))
+    sections.append(render_steps_for_think(state.steps))
     return "\n\n".join(sections)
+
+
+def render_plan(plan: Plan) -> str:
+    """Return the plan under a heading that says where it came from.
+
+    Args:
+        plan: The plan the plan node wrote before the loop.
+
+    Returns:
+        "Plan (from MCP template <name>):" or "Plan (from tool descriptions):", then its text.
+    """
+    if plan.source == PlanSource.MCP_TEMPLATE:
+        plan_origin = f"MCP template {plan.template_name}"
+    else:
+        plan_origin = "tool descriptions"
+    return f"Plan (from {plan_origin}):\n{plan.text}"
 
 
 def build_act_view(state: AgentState) -> str:

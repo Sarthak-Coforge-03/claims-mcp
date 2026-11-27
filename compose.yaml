@@ -1,6 +1,7 @@
 # Docker Compose: describes how to run containers for this project, so you type
 # `docker compose run --rm dev <command>` instead of a long `docker run ...` line.
-# Two services: "dev" for tests and one-off commands, "mcp_server" for the long-running server.
+# Three services on one image: "dev" for tests and one-off commands, "mcp_server" for the
+# long-running server, "cli" for the interactive app (`docker compose run --rm cli`).
 
 services:
   # "dev" is the container we develop and test in.
@@ -60,3 +61,34 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+  # "cli" is the whole app: it starts mcp_server, waits until it is healthy, then opens the
+  # interactive CLI (the host agent). Run: `docker compose run --rm cli` · stop the server
+  # afterwards with `docker compose down` (--rm removes only the cli container).
+  cli:
+    # Same image and mount as dev, so code edits show up without a rebuild.
+    build:
+      context: .
+      target: dev
+    image: claims-mcp-dev
+    volumes:
+      - .:/app
+    # In a profile so a plain `docker compose up` never starts an interactive service with no
+    # terminal; `docker compose run cli` switches the profile on by itself.
+    profiles: ["cli"]
+    # The claims-mcp entry point from pyproject.toml (claims_mcp.host.agent.cli:main).
+    command: ["uv", "run", "claims-mcp"]
+    environment:
+      # Reach the server by its service name; this wins over any URL set in .env.
+      CLAIMS_MCP_SERVER_URL: http://mcp_server:8000/mcp
+    # Foundry settings (and options such as CLAIMS_MCP_SHOW_TRACE) from the local .env file.
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      # Start mcp_server first and wait for its healthcheck, so the CLI's connect succeeds.
+      mcp_server:
+        condition: service_healthy
+    # Keep stdin open and give the container a terminal: the questionary prompts need both.
+    stdin_open: true
+    tty: true

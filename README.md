@@ -172,9 +172,8 @@ src/claims_mcp/
   backend/          business domain, no MCP: models/, repositories/ (base/ + json/; SQL optional later), services/
   mcp_server/       MCP server exposing backend services as tools
   host/             the agent: llm/ adapter, gateways/ (tools, templates, smoke_client), state/,
-                    plan/ node,
-                    react/ nodes + loop, reflect/ critique + revise, system_prompts/; talks to
-                    the backend only through MCP
+                    plan/ node, react/ nodes + loop, reflect/ critique + revise (each with its
+                    own prompts/); talks to the backend only through MCP
 data/               mock data (employees.json, policies.json)
 tests/              unit tests, mirroring src/ (tests/backend/...); test doubles in tests/fakes/
 Dockerfile          dev image (multi-stage: base → dev)

@@ -2,11 +2,11 @@
 
 from claims_mcp.host.llm.adapters.chat_model_adapter_base import ChatModelAdapterBase
 from claims_mcp.host.llm.models.conversation import Conversation
+from claims_mcp.host.reflect.prompts.revise_system_prompt import REVISE_SYSTEM_PROMPT
 from claims_mcp.host.reflect.reflect_views import build_revise_view
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.critique import Critique
 from claims_mcp.host.state.request_decision import RequestDecision
-from claims_mcp.host.system_prompts.revise_system_prompt import REVISE_SYSTEM_PROMPT
 
 
 async def run_revise_node(

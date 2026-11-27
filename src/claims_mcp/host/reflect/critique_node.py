@@ -3,11 +3,11 @@
 from claims_mcp.host.llm.adapters.chat_model_adapter_base import ChatModelAdapterBase
 from claims_mcp.host.llm.models.conversation import Conversation
 from claims_mcp.host.reflect.decision_checks import find_decision_issues
+from claims_mcp.host.reflect.prompts.critique_system_prompt import CRITIQUE_SYSTEM_PROMPT
 from claims_mcp.host.reflect.reflect_views import build_critique_view
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.critique import Critique
 from claims_mcp.host.state.reflection import Reflection
-from claims_mcp.host.system_prompts.critique_system_prompt import CRITIQUE_SYSTEM_PROMPT
 
 
 async def run_critique_node(state: AgentState, adapter: ChatModelAdapterBase) -> Critique:

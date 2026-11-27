@@ -7,9 +7,14 @@ Run over stdio with: python -m claims_mcp.mcp_server.server
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
+from claims_mcp.backend.models.eligibility_result import EligibilityResult
 from claims_mcp.backend.models.employee_info import EmployeeInfo
 from claims_mcp.backend.models.role_policy import RolePolicy
-from claims_mcp.backend.service_provider import get_employee_service, get_policy_service
+from claims_mcp.backend.service_provider import (
+    get_eligibility_service,
+    get_employee_service,
+    get_policy_service,
+)
 
 mcp = MCPServer("it-equipment-requests")
 
@@ -55,6 +60,29 @@ def get_policy_limits(role: str) -> RolePolicy:
     if role_policy is None:
         raise ToolError(f"No policy for role {role}")
     return role_policy
+
+
+@mcp.tool()
+def check_request_eligibility(employee_id: str, item: str) -> EligibilityResult:
+    """Check whether an employee may get an item now under their role's policy, and why.
+
+    Call this after get_employee_info; cite the returned rule_id in the decision.
+
+    Args:
+        employee_id: The employee's ID, e.g. "E001".
+        item: The requested item, e.g. "laptop" (anything outside the catalog gives ESC-2).
+
+    Returns:
+        is_eligible, rule_id (ELG-1/2/3, DEN-2 or ESC-2), held_count, max_held,
+        refresh_interval_months, newest_issued_date and eligible_from_date.
+
+    Raises:
+        ToolError: If no employee has that ID; the agent receives this as an error result.
+    """
+    eligibility = get_eligibility_service().check_request_eligibility(employee_id, item)
+    if eligibility is None:
+        raise ToolError(f"No employee with ID {employee_id}")
+    return eligibility
 
 
 if __name__ == "__main__":

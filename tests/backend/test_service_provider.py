@@ -3,7 +3,11 @@
 The MCP tools get their services only through this provider, so it must hand out shared instances.
 """
 
-from claims_mcp.backend.service_provider import get_employee_service, get_policy_service
+from claims_mcp.backend.service_provider import (
+    get_eligibility_service,
+    get_employee_service,
+    get_policy_service,
+)
 
 
 def test_get_employee_service_returns_same_instance_each_call():
@@ -28,3 +32,15 @@ def test_get_policy_service_returns_same_instance_each_call():
     second_policy_service = get_policy_service()
 
     assert second_policy_service is first_policy_service
+
+
+def test_get_eligibility_service_returns_same_instance_each_call():
+    """Two calls to get_eligibility_service() return the very same EligibilityService object.
+
+    It reuses the shared employee and policy services instead of building its own copies.
+    """
+    first_eligibility_service = get_eligibility_service()
+
+    second_eligibility_service = get_eligibility_service()
+
+    assert second_eligibility_service is first_eligibility_service

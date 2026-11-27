@@ -1,4 +1,4 @@
-"""EligibilityResult: what check_request_eligibility returns (docs/requirements.md §7)."""
+"""EligibilityResult: what check_request_eligibility returns (docs/requirements.md section 7)."""
 
 from datetime import date
 

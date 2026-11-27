@@ -1,12 +1,16 @@
-"""MCP server for the IT equipment request handler: exposes backend services as MCP tools.
+"""MCP server for the IT equipment request handler: backend services as tools, plus templates.
 
 Tools only translate between MCP and the backend; all business logic lives in claims_mcp.backend.
+Prompts return templates for known request scenarios (built in mcp_server/prompts/).
 Run over stdio with: python -m claims_mcp.mcp_server.server
 """
 
+from datetime import date
+from typing import Annotated
+
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
-from pydantic import ValidationError
+from pydantic import Field, ValidationError
 
 from claims_mcp.backend.models.eligibility_result import EligibilityResult
 from claims_mcp.backend.models.employee_info import EmployeeInfo
@@ -18,8 +22,25 @@ from claims_mcp.backend.service_provider import (
     get_escalation_service,
     get_policy_service,
 )
+from claims_mcp.mcp_server.prompts.exception_request import build_exception_request_prompt
+from claims_mcp.mcp_server.prompts.new_item_request import build_new_item_request_prompt
+from claims_mcp.mcp_server.prompts.replacement_request import build_replacement_request_prompt
 
 mcp = MCPServer("it-equipment-requests")
+
+# Prompt arguments, with the descriptions the plan step reads when filling them from the request.
+EmployeeIdArgument = Annotated[str, Field(description='The employee ID, e.g. "E001".')]
+ItemArgument = Annotated[
+    str,
+    Field(
+        description='The catalog item, e.g. "monitor" or "docking_station"; '
+        "otherwise the employee's own words for it."
+    ),
+]
+ReasonArgument = Annotated[str, Field(description="The employee's reason, quoted as given.")]
+QuantityArgument = Annotated[
+    str, Field(description='How many units, as digits, e.g. "3"; "1" if not stated.')
+]
 
 
 @mcp.tool()
@@ -111,6 +132,90 @@ def flag_for_human_review(employee_id: str, request: str, reason: str) -> Escala
         raise ToolError(
             "Cannot escalate: request and reason must not be empty"
         ) from validation_error
+
+
+@mcp.prompt(
+    name="replacement_request",
+    description=(
+        "Use when the employee wants to swap an item they already have for a new one because it "
+        'is old, slow or due for a refresh (e.g. "my laptop is 5 years old"), and claims no '
+        "damage, loss or need."
+    ),
+)
+def replacement_request(
+    employee_id: EmployeeIdArgument,
+    item: ItemArgument,
+    reason: ReasonArgument,
+    quantity: QuantityArgument = "1",
+) -> str:
+    """Return the replacement template (ELG-2 approve or ELG-3 deny) for one request.
+
+    Args:
+        employee_id: The requesting employee's ID, e.g. "E001".
+        item: The item to replace, e.g. "monitor".
+        reason: The employee's reason, as given.
+        quantity: How many units are requested, as text; default "1".
+
+    Returns:
+        The template text the agent's plan step follows, dated today.
+    """
+    return build_replacement_request_prompt(employee_id, item, reason, quantity, date.today())
+
+
+@mcp.prompt(
+    name="new_item_request",
+    description=(
+        "Use when the employee asks for an item they don't have yet, an extra unit, several "
+        'units, or something that may not be standard equipment (e.g. "a phone", '
+        '"three monitors", "a standing desk").'
+    ),
+)
+def new_item_request(
+    employee_id: EmployeeIdArgument,
+    item: ItemArgument,
+    reason: ReasonArgument,
+    quantity: QuantityArgument = "1",
+) -> str:
+    """Return the new-item template (ELG-1, DEN-2, ESC-2 or ESC-6) for one request.
+
+    Args:
+        employee_id: The requesting employee's ID, e.g. "E003".
+        item: The requested item, e.g. "phone".
+        reason: The employee's reason, as given.
+        quantity: How many units are requested, as text; default "1".
+
+    Returns:
+        The template text the agent's plan step follows, dated today.
+    """
+    return build_new_item_request_prompt(employee_id, item, reason, quantity, date.today())
+
+
+@mcp.prompt(
+    name="exception_request",
+    description=(
+        "Use when the reason claims damage, breakage, loss, theft, a medical need or an "
+        'accessibility need (e.g. "screen cracked", "laptop stolen", "doctor\'s note"). '
+        "Takes priority over replacement_request when both fit."
+    ),
+)
+def exception_request(
+    employee_id: EmployeeIdArgument,
+    item: ItemArgument,
+    reason: ReasonArgument,
+    quantity: QuantityArgument = "1",
+) -> str:
+    """Return the exception template (ESC-5 if too soon, else approve) for one request.
+
+    Args:
+        employee_id: The requesting employee's ID, e.g. "E002".
+        item: The requested item, e.g. "laptop".
+        reason: The claimed exception, e.g. "screen cracked".
+        quantity: How many units are requested, as text; default "1".
+
+    Returns:
+        The template text the agent's plan step follows, dated today.
+    """
+    return build_exception_request_prompt(employee_id, item, reason, quantity, date.today())
 
 
 if __name__ == "__main__":

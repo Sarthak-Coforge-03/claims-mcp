@@ -1,4 +1,4 @@
-"""EligibilityService: decides whether a request falls within policy (docs/requirements.md §5).
+"""EligibilityService: decides whether a request is within policy (docs/requirements.md section 5).
 
 It combines the employee's equipment on file with their role's item policy and today's date.
 """

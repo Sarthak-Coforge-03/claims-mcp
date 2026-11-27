@@ -1,4 +1,4 @@
-"""EligibilityRule: the rule IDs an eligibility check can report (docs/requirements.md §5–6)."""
+"""EligibilityRule: rule IDs an eligibility check reports (docs/requirements.md sections 5-6)."""
 
 from enum import StrEnum
 

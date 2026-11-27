@@ -1,4 +1,4 @@
-"""CatalogItem: the kinds of equipment that can be requested (docs/requirements.md §3)."""
+"""CatalogItem: the kinds of equipment that can be requested (docs/requirements.md section 3)."""
 
 from enum import StrEnum
 

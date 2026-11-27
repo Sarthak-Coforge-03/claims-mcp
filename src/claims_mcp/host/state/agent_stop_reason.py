@@ -4,7 +4,7 @@ from enum import StrEnum
 
 
 class AgentStopReason(StrEnum):
-    """final_answer = THINK finished; step_limit = max_steps cycles ran without a finish."""
+    """final_answer = THINK finished with a request decision; step_limit = no finish in time."""
 
     FINAL_ANSWER = "final_answer"
     STEP_LIMIT = "step_limit"

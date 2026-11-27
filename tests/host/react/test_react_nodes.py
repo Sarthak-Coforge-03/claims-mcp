@@ -17,6 +17,8 @@ from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.agent_stop_reason import AgentStopReason
 from claims_mcp.host.state.react_phase import ReactPhase
 from claims_mcp.host.state.react_step import ReActStep
+from claims_mcp.host.state.request_decision import RequestDecision
+from claims_mcp.host.state.request_outcome import RequestOutcome
 from claims_mcp.host.state.thought import Thought
 from claims_mcp.host.state.thought_decision import ThoughtDecision
 from fakes.fake_chat_model_adapter import FakeChatModelAdapter
@@ -30,13 +32,21 @@ LOOKUP_THOUGHT = Thought(
     established_facts="Nothing is known yet.",
     decision=ThoughtDecision.CONTINUE,
     next_action="Call get_employee_info for E001.",
-    final_answer=None,
+    request_decision=None,
+)
+APPROVE_DECISION = RequestDecision(
+    outcome=RequestOutcome.APPROVE,
+    rule_id="ELG-2",
+    policy_rule_id="POL-STD-MONITOR",
+    eligible_from_date=None,
+    escalation_id=None,
+    response="Approved under ELG-2 (POL-STD-MONITOR).",
 )
 FINISH_THOUGHT = Thought(
     established_facts="ELG-2 applies under POL-STD-MONITOR.",
     decision=ThoughtDecision.FINISH,
     next_action=None,
-    final_answer="Approved under ELG-2 (POL-STD-MONITOR).",
+    request_decision=APPROVE_DECISION,
 )
 
 
@@ -76,14 +86,21 @@ async def test_think_node_continue_starts_step_and_goes_to_act():
 
 
 @pytest.mark.anyio
-async def test_think_node_finish_sets_final_answer_and_goes_to_done():
-    """A FINISH thought sets final_answer and FINAL_ANSWER, and the next phase is DONE."""
+async def test_think_node_finish_stores_request_decision_and_goes_to_done():
+    """A FINISH thought's decision (approve, ELG-2) is stored in the state; next phase is DONE."""
     adapter = FakeChatModelAdapter([], [FINISH_THOUGHT])
     state = build_state([], ReactPhase.THINK)
 
     await run_think_node(state, adapter)
 
-    assert state.final_answer == "Approved under ELG-2 (POL-STD-MONITOR)."
+    assert state.request_decision == RequestDecision(
+        outcome=RequestOutcome.APPROVE,
+        rule_id="ELG-2",
+        policy_rule_id="POL-STD-MONITOR",
+        eligible_from_date=None,
+        escalation_id=None,
+        response="Approved under ELG-2 (POL-STD-MONITOR).",
+    )
     assert state.stop_reason == AgentStopReason.FINAL_ANSWER
     assert state.next_phase == ReactPhase.DONE
 

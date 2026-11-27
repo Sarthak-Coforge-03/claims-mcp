@@ -29,7 +29,7 @@ def build_lookup_step() -> ReActStep:
             established_facts="Nothing yet.",
             decision=ThoughtDecision.CONTINUE,
             next_action="Call get_employee_info for E001.",
-            final_answer=None,
+            request_decision=None,
         ),
         action=ToolCall(id="toolu_1", name="get_employee_info", arguments={"employee_id": "E001"}),
         tool_result=ToolResult(tool_call_id="toolu_1", content=LOOKUP_RESULT, is_error=False),
@@ -44,7 +44,7 @@ def build_eligibility_step(tool_result: ToolResult | None, action_error: str | N
             established_facts=LOOKUP_OBSERVATION,
             decision=ThoughtDecision.CONTINUE,
             next_action=ELIGIBILITY_NEXT_ACTION,
-            final_answer=None,
+            request_decision=None,
         ),
         action=ToolCall(
             id="toolu_2",

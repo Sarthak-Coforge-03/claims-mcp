@@ -16,7 +16,7 @@ async def run_think_node(state: AgentState, adapter: ChatModelAdapterBase) -> No
     """Ask the model for a Thought, start a new step with it, and route on its decision.
 
     Args:
-        state: The run state; gets a new step, and on FINISH the final answer and stop reason.
+        state: The run state; gets a new step, and on FINISH the request decision and stop reason.
         adapter: The chat model; called once, structured, with no tools.
 
     Side effects:
@@ -27,7 +27,7 @@ async def run_think_node(state: AgentState, adapter: ChatModelAdapterBase) -> No
     state.steps.append(ReActStep(thought=thought))
 
     if thought.decision == ThoughtDecision.FINISH:
-        state.final_answer = thought.final_answer
+        state.request_decision = thought.request_decision
         state.stop_reason = AgentStopReason.FINAL_ANSWER
         state.next_phase = ReactPhase.DONE
     else:

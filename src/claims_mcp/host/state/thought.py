@@ -2,11 +2,12 @@
 
 from pydantic import BaseModel, Field
 
+from claims_mcp.host.state.request_decision import RequestDecision
 from claims_mcp.host.state.thought_decision import ThoughtDecision
 
 
 class Thought(BaseModel):
-    """THINK's established facts, its decision, and either the next action or the final answer.
+    """THINK's established facts, its choice, and either the next action or the request decision.
 
     The model fills this in through structured outputs, so field descriptions are its instructions.
     No field asks for the model's reasoning: Claude's safeguards refuse that
@@ -22,7 +23,7 @@ class Thought(BaseModel):
     next_action: str | None = Field(
         description="When continuing: the one tool to call, its arguments, and why. Else null."
     )
-    final_answer: str | None = Field(
-        description="When finishing: the reply to the employee with the decision and rule ID, "
-        "plus the policy_rule_id, eligible-from date or escalation_id that applies. Else null."
+    request_decision: RequestDecision | None = Field(
+        description="When finishing: the decision on the request, its rule and the reply to the "
+        "employee. Else null."
     )

@@ -25,7 +25,7 @@ async def run_react_loop(
         tool_gateway: Runs ACT's tool calls.
 
     Returns:
-        The same state, finished: stop_reason FINAL_ANSWER (with final_answer) or STEP_LIMIT.
+        The same state, finished: stop_reason FINAL_ANSWER (with request_decision) or STEP_LIMIT.
     """
     while state.next_phase != ReactPhase.DONE:
         if state.next_phase == ReactPhase.THINK and is_step_limit_reached(state):

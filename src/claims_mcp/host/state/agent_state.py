@@ -9,6 +9,7 @@ from claims_mcp.host.state.agent_stop_reason import AgentStopReason
 from claims_mcp.host.state.plan import Plan
 from claims_mcp.host.state.react_phase import ReactPhase
 from claims_mcp.host.state.react_step import ReActStep
+from claims_mcp.host.state.request_decision import RequestDecision
 
 
 class AgentState(BaseModel):
@@ -24,7 +25,7 @@ class AgentState(BaseModel):
     plan: Plan | None = None
     steps: list[ReActStep] = []
     next_phase: ReactPhase = ReactPhase.THINK
-    final_answer: str | None = None
+    request_decision: RequestDecision | None = None
     stop_reason: AgentStopReason | None = None
 
     @property

@@ -26,7 +26,7 @@ async def run_agent(
         template_gateway: Lists and fills the scenario templates for the plan node.
 
     Returns:
-        The same state, with plan, steps, stop_reason and (on a finish) final_answer set.
+        The same state, with plan, steps, stop_reason and (on a finish) request_decision set.
     """
     await run_plan_node(state, adapter, template_gateway)
     return await run_react_loop(state, adapter, tool_gateway)

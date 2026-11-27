@@ -1,18 +1,15 @@
-# Files Docker must NOT send into the build (the "build context").
-# Smaller context = faster builds, and secrets never end up baked into an image.
+# Kept out of the build context: faster builds, and no secrets baked into an image.
 
-# Local virtualenv: holds macOS binaries, useless (and large) inside the Linux container.
+# Host venv (macOS binaries) and git history.
 .venv
-
-# Git history is not needed to build or run the app.
 .git
 
-# Secrets: never copy env files into an image. The template stays allowed.
+# Secrets; the template stays allowed.
 .env
 .env.*
 !.env.example
 
-# Test / coverage output generated on the host.
+# Test and coverage output.
 htmlcov
 .coverage
 .coverage.*
@@ -20,7 +17,7 @@ htmlcov
 __pycache__
 **/__pycache__
 
-# Editor and Claude Code config, plus personal notes: not part of the app.
+# Editor and Claude Code config, personal notes.
 .claude
 .vscode
 *.local.md

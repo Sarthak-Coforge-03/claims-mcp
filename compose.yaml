@@ -1,61 +1,45 @@
-# Docker Compose: describes how to run containers for this project, so you type
-# `docker compose run --rm dev <command>` instead of a long `docker run ...` line.
-# Three services on one image: "dev" for tests and one-off commands, "mcp_server" for the
-# long-running server, "cli" for the interactive app (`docker compose run --rm cli`).
+# Three services on one image (claims-mcp-dev, the Dockerfile's dev stage):
+#   dev         tests and one-off commands: `docker compose run --rm dev <command>`
+#   mcp_server  the MCP server: `docker compose up -d mcp_server`
+#   cli         the whole app (server + interactive CLI): `docker compose run --rm cli`
+# Stop everything with `docker compose down` (add -v to also reset the data volume).
 
 services:
-  # "dev" is the container we develop and test in.
   dev:
-    # Build from the Dockerfile in this folder, stopping at the "dev" stage
-    # (base + dev tools + code). Other services can later pick other stages.
     build:
       context: .
       target: dev
-    # Name for the built image, so it shows up readable in `docker images`.
     image: claims-mcp-dev
     volumes:
-      # Bind mount: the host repo appears at /app inside the container. Edits made on the
-      # host are visible immediately, with no rebuild. Rebuild only when dependencies change.
-      # The venv lives in /opt/venv (see Dockerfile), so this mount does not hide it.
+      # The repo at /app: code edits show up without a rebuild (the venv is in /opt/venv).
       - .:/app
     environment:
-      # Clients in this container reach the server by its service name, not localhost:
-      # compose puts both services on one network where "mcp_server" resolves to that container.
-      # No depends_on: plain test runs shouldn't start the server. Start it with `up -d` first.
+      # Service name, not localhost. No depends_on: test runs shouldn't start the server.
       CLAIMS_MCP_SERVER_URL: http://mcp_server:8000/mcp
-    # The host's LLM settings (Foundry resource + API key) come from the local .env file.
-    # required: false keeps tests working on machines without one.
     env_file:
+      # Foundry settings; optional so tests run without a .env.
       - path: .env
         required: false
 
-  # "mcp_server" runs the MCP server over Streamable HTTP until stopped.
-  # Start: `docker compose up -d mcp_server` · logs: `docker compose logs -f mcp_server`
-  # Stop: `docker compose down`
   mcp_server:
-    # Same image as dev (built once); only the command differs.
     build:
       context: .
       target: dev
     image: claims-mcp-dev
     volumes:
       - .:/app
-      # Named volume over data/: employees, policies and escalations persist across `down`/`up`
-      # until the volume is deleted (`docker compose down -v`). On first use Docker seeds it
-      # from the image's data/ (the two JSON files). Host edits to data/*.json no longer reach
-      # this container; delete the volume to re-seed after rebuilding.
+      # Over data/: persists until `down -v`; seeded once from the image's two JSON files.
+      # Host edits to data/*.json don't reach it; rebuild and `down -v` to re-seed.
       - claims_data:/app/data
     command: ["uv", "run", "python", "-m", "claims_mcp.mcp_server.server"]
     environment:
-      # Listen on all interfaces inside the container, otherwise only the container itself
-      # could connect and neither dev nor the host would reach it.
+      # All interfaces, so other containers and the published port can reach it.
       CLAIMS_MCP_SERVER_HOST: 0.0.0.0
     ports:
-      # host:container. Bound to 127.0.0.1 so only this machine can connect: with 0.0.0.0 the
-      # SDK doesn't switch on DNS-rebinding protection, so it must not be open to the network.
+      # Local machine only: with host 0.0.0.0 the SDK leaves DNS-rebinding protection off.
       - "127.0.0.1:8000:8000"
     healthcheck:
-      # The image has no curl, so Python asks the /health route; a non-200 or no answer fails.
+      # No curl in the image, so Python requests /health.
       test:
         - CMD
         - uv
@@ -67,38 +51,31 @@ services:
       timeout: 5s
       retries: 3
 
-  # "cli" is the whole app: it starts mcp_server, waits until it is healthy, then opens the
-  # interactive CLI (the host agent). Run: `docker compose run --rm cli` · stop the server
-  # afterwards with `docker compose down` (--rm removes only the cli container).
   cli:
-    # Same image and mount as dev, so code edits show up without a rebuild.
     build:
       context: .
       target: dev
     image: claims-mcp-dev
     volumes:
       - .:/app
-    # In a profile so a plain `docker compose up` never starts an interactive service with no
-    # terminal; `docker compose run cli` switches the profile on by itself.
+    # Kept out of a plain `docker compose up` (it needs a terminal); `run cli` enables it.
     profiles: ["cli"]
-    # The claims-mcp entry point from pyproject.toml (claims_mcp.host.agent.cli:main).
     command: ["uv", "run", "claims-mcp"]
     environment:
-      # Reach the server by its service name; this wins over any URL set in .env.
+      # Wins over any URL in .env.
       CLAIMS_MCP_SERVER_URL: http://mcp_server:8000/mcp
-    # Foundry settings (and options such as CLAIMS_MCP_SHOW_TRACE) from the local .env file.
     env_file:
+      # Foundry settings and options such as CLAIMS_MCP_SHOW_TRACE.
       - path: .env
         required: false
     depends_on:
-      # Start mcp_server first and wait for its healthcheck, so the CLI's connect succeeds.
+      # Wait for the server's healthcheck so the CLI's first connect succeeds.
       mcp_server:
         condition: service_healthy
-    # Keep stdin open and give the container a terminal: the questionary prompts need both.
+    # The questionary prompts need open stdin and a terminal.
     stdin_open: true
     tty: true
 
-# Named volumes are managed by Docker and outlive containers. List them with `docker volume ls`
-# (the real name is prefixed with the project: claims-mcp_claims_data).
+# Outlives containers; Docker names it claims-mcp_claims_data (`docker volume ls`).
 volumes:
   claims_data:

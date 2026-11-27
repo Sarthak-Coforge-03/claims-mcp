@@ -17,6 +17,7 @@ from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.enums import (
     AgentStopReason,
     ReactPhase,
+    RequesterType,
     RequestOutcome,
     ThoughtDecision,
 )
@@ -64,9 +65,11 @@ def build_turn(text: str, tool_calls: list[ToolCall]) -> ModelTurn:
 
 
 def build_state(steps: list[ReActStep], next_phase: ReactPhase) -> AgentState:
-    """Return an E001 monitor request state holding the given steps, about to run next_phase."""
+    """Return employee E001's monitor request state holding the steps, about to run next_phase."""
     return AgentState(
-        request="Employee E001: my monitor is old, I'd like a new one.",
+        requester_type=RequesterType.EMPLOYEE,
+        employee_id="E001",
+        request="my monitor is old, I'd like a new one.",
         today=date(2026, 11, 27),
         tool_specs=[],
         max_steps=10,
@@ -122,6 +125,20 @@ async def test_act_node_one_tool_call_runs_it_and_goes_to_observe():
         tool_result=ToolResult(tool_call_id="toolu_1", content=LOOKUP_RESULT, is_error=False),
     )
     assert state.next_phase == ReactPhase.OBSERVE
+
+
+@pytest.mark.anyio
+async def test_act_node_employee_lookup_records_requester_name_from_the_record():
+    """A successful get_employee_info for E001 copies its name, Priya Sharma, into the state."""
+    adapter = FakeChatModelAdapter([build_turn("", [EMPLOYEE_LOOKUP])], [])
+    tool_gateway = FakeToolGateway(
+        {"get_employee_info": '{"employee_id": "E001", "name": "Priya Sharma"}'}
+    )
+    state = build_state([ReActStep(thought=LOOKUP_THOUGHT)], ReactPhase.ACT)
+
+    await run_act_node(state, adapter, tool_gateway)
+
+    assert state.requester_name == "Priya Sharma"
 
 
 @pytest.mark.anyio

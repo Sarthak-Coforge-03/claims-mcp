@@ -3,7 +3,7 @@
 Unlike THINK, reflection reads the raw results, so it can catch what OBSERVE's readings lost.
 """
 
-from claims_mcp.host.react.views import render_action
+from claims_mcp.host.react.views import render_action, render_request
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.critique import Critique
 from claims_mcp.host.state.request_decision import RequestDecision
@@ -22,7 +22,7 @@ def build_critique_view(state: AgentState, code_issues: list[str]) -> str:
         Text sections separated by blank lines, ending with "Code checks found:".
     """
     sections = [
-        f"Request: {state.request}",
+        render_request(state),
         f"Today: {state.today.isoformat()}",
         render_draft_decision(state.request_decision),
         render_tool_calls(state),
@@ -42,7 +42,7 @@ def build_revise_view(state: AgentState, critique: Critique) -> str:
         Text sections separated by blank lines, ending with the critique's answers and issues.
     """
     sections = [
-        f"Request: {state.request}",
+        render_request(state),
         f"Today: {state.today.isoformat()}",
         render_draft_decision(state.request_decision),
         render_tool_calls(state),

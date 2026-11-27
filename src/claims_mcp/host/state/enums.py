@@ -26,6 +26,13 @@ class ReactPhase(StrEnum):
     DONE = "done"
 
 
+class RequesterType(StrEnum):
+    """Who is asking: an employee (standard or manager, from the record) or a contractor."""
+
+    EMPLOYEE = "employee"
+    CONTRACTOR = "contractor"
+
+
 class RequestOutcome(StrEnum):
     """approve or deny under the rules, or escalate to a human reviewer."""
 

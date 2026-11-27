@@ -1,4 +1,4 @@
-"""Unit tests for the reflection's two code checks, passed to the model review as hints.
+"""Unit tests for the reflection's code checks, passed to the model review as certain issues.
 
 Each test builds its own steps with JSON tool results, the shape McpToolGateway returns.
 """
@@ -10,7 +10,7 @@ from claims_mcp.host.llm.models.tool_call import ToolCall
 from claims_mcp.host.llm.models.tool_result import ToolResult
 from claims_mcp.host.reflect.decision_checks import find_decision_issues
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.state.enums import RequestOutcome, ThoughtDecision
+from claims_mcp.host.state.enums import RequesterType, RequestOutcome, ThoughtDecision
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.request_decision import RequestDecision
 from claims_mcp.host.state.thought import Thought
@@ -39,9 +39,17 @@ def build_escalation_step() -> ReActStep:
     )
 
 
-def build_state(steps: list[ReActStep], outcome: RequestOutcome, rule_id: str) -> AgentState:
-    """Return a finished state holding the given steps and a draft with outcome and rule_id."""
+def build_state(
+    steps: list[ReActStep],
+    outcome: RequestOutcome,
+    rule_id: str,
+    requester_name: str | None = None,
+) -> AgentState:
+    """Return a finished E004 state with the given steps, requester name and draft outcome/rule."""
     return AgentState(
+        requester_type=RequesterType.EMPLOYEE,
+        employee_id="E004",
+        requester_name=requester_name,
         request="A request.",
         today=date(2026, 11, 27),
         tool_specs=[],
@@ -85,3 +93,14 @@ def test_escalate_without_flag_call_is_an_issue():
     assert decision_issues == [
         "Outcome is escalate, but flag_for_human_review never returned a result."
     ]
+
+
+def test_response_not_addressing_requester_name_is_an_issue():
+    """With requester_name Tomás García, a reply that never names him is reported."""
+    state = build_state(
+        [build_escalation_step()], RequestOutcome.ESCALATE, "ESC-7", requester_name="Tomás García"
+    )
+
+    decision_issues = find_decision_issues(state)
+
+    assert decision_issues == ["The response does not address Tomás García."]

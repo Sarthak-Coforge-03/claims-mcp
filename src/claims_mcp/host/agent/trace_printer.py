@@ -1,6 +1,6 @@
 """Prints a finished run's Thought / Action / Observation trace, read from the AgentState alone."""
 
-from claims_mcp.host.react.views import render_action, render_plan
+from claims_mcp.host.react.views import render_action, render_plan, render_request
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.reflection import Reflection
@@ -15,7 +15,7 @@ def print_trace(state: AgentState) -> None:
     Args:
         state: The state run_react_loop returned.
     """
-    print(f"Request: {state.request}\n")
+    print(f"{render_request(state)}\n")
     if state.plan is not None:
         print(render_plan(state.plan))
         print()

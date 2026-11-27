@@ -10,7 +10,7 @@ from claims_mcp.host.llm.models.tool_result import ToolResult
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
 from claims_mcp.host.react.views import build_act_view, build_observe_view, build_think_view
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.state.enums import PlanSource, ThoughtDecision
+from claims_mcp.host.state.enums import PlanSource, RequesterType, ThoughtDecision
 from claims_mcp.host.state.plan import Plan
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.thought import Thought
@@ -56,9 +56,11 @@ def build_eligibility_step(tool_result: ToolResult | None, action_error: str | N
 
 
 def build_state(steps: list[ReActStep]) -> AgentState:
-    """Return the state of an E001 monitor request on 2026-11-27 holding the given steps."""
+    """Return the state of employee E001's monitor request on 2026-11-27 holding the given steps."""
     return AgentState(
-        request="Employee E001: my monitor is old, I'd like a new one.",
+        requester_type=RequesterType.EMPLOYEE,
+        employee_id="E001",
+        request="my monitor is old, I'd like a new one.",
         today=date(2026, 11, 27),
         tool_specs=[
             ToolSpec(
@@ -99,8 +101,23 @@ def test_think_view_shows_the_plan_with_its_source_when_set():
     ) in think_view
 
 
+def test_think_view_for_contractor_shows_name_and_no_employee_id():
+    """A contractor's header names them (Alex Doe) and says there is no employee ID."""
+    state = build_state([])
+    state.requester_type = RequesterType.CONTRACTOR
+    state.employee_id = None
+    state.requester_name = "Alex Doe"
+
+    think_view = build_think_view(state)
+
+    assert (
+        "Requester: contractor\nName: Alex Doe\nEmployee ID: none (contractor)\n"
+        "Request: my monitor is old, I'd like a new one."
+    ) in think_view
+
+
 def test_act_view_shows_only_request_and_current_next_action():
-    """ACT sees the request and THINK's next_action; earlier observations are hidden from it."""
+    """ACT sees the request header and THINK's next_action; earlier observations are hidden."""
     eligibility_result = ToolResult(
         tool_call_id="toolu_2", content=ELIGIBILITY_RESULT, is_error=False
     )
@@ -111,7 +128,8 @@ def test_act_view_shows_only_request_and_current_next_action():
     act_view = build_act_view(state)
 
     assert act_view == (
-        "Request: Employee E001: my monitor is old, I'd like a new one.\n"
+        "Requester: employee\nName: not known yet\nEmployee ID: E001\n"
+        "Request: my monitor is old, I'd like a new one.\n"
         f"Next action: {ELIGIBILITY_NEXT_ACTION}"
     )
 

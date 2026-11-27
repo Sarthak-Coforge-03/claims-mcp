@@ -12,7 +12,12 @@ from claims_mcp.host.llm.models.tool_call import ToolCall
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
 from claims_mcp.host.react.react_loop import run_react_loop
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.state.enums import AgentStopReason, RequestOutcome, ThoughtDecision
+from claims_mcp.host.state.enums import (
+    AgentStopReason,
+    RequesterType,
+    RequestOutcome,
+    ThoughtDecision,
+)
 from claims_mcp.host.state.request_decision import RequestDecision
 from claims_mcp.host.state.thought import Thought
 from fakes.fake_chat_model_adapter import FakeChatModelAdapter
@@ -60,7 +65,9 @@ async def run_loop(adapter: FakeChatModelAdapter, max_steps: int) -> AgentState:
     """Run the loop on an E001 monitor request with a canned get_employee_info result."""
     tool_gateway = FakeToolGateway({"get_employee_info": '{"role": "standard"}'})
     state = AgentState(
-        request="Employee E001: my monitor is old, I'd like a new one.",
+        requester_type=RequesterType.EMPLOYEE,
+        employee_id="E001",
+        request="my monitor is old, I'd like a new one.",
         today=date(2026, 11, 27),
         tool_specs=[
             ToolSpec(

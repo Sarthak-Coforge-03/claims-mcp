@@ -7,7 +7,8 @@ You are given the request, today's date, the draft decision, every tool call tha
 its raw result, and issues that code checks already found. Use only those tool results as facts.
 
 Answer four questions about the draft:
-- Does it directly address the employee's specific request?
+- Does it directly address the employee's specific request? It must address them by the Name \
+in the request header; a wrong or invented name is a no.
 - Does it follow the equipment policy correctly? Escalation rules come before deny rules, and \
 deny rules before an ELG approve. ESC-7 applies only when no other rule covers the request.
 - Does it avoid promising anything the tool results didn't confirm? That includes delivery \

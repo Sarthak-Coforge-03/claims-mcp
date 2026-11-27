@@ -1,7 +1,7 @@
-"""Two code checks on THINK's decision, passed to the reflection model review as hints.
+"""Code checks on THINK's decision, passed to the reflection model review as certain issues.
 
-The model review does the full comparison against the tool results; these catch the two
-mistakes that are certain from the state alone, without asking a model.
+The model review does the full comparison against the tool results; these catch the mistakes
+that are certain from the state alone, without asking a model.
 """
 
 from claims_mcp.host.state.agent_state import AgentState
@@ -26,13 +26,13 @@ KNOWN_RULE_IDS = {
 
 
 def find_decision_issues(state: AgentState) -> list[str]:
-    """Return the certain issues with the decision: an unknown rule, or an escalation not filed.
+    """Return the certain issues: an unknown rule, an escalation not filed, a reply not naming them.
 
     Args:
         state: A finished run state with request_decision set.
 
     Returns:
-        One sentence per issue; empty when both checks pass.
+        One sentence per issue; empty when every check passes.
     """
     request_decision = state.request_decision
     decision_issues = []
@@ -44,6 +44,9 @@ def find_decision_issues(state: AgentState) -> list[str]:
         decision_issues.append(
             f"Outcome is escalate, but {ESCALATION_TOOL_NAME} never returned a result."
         )
+    is_name_known = state.requester_name is not None
+    if is_name_known and state.requester_name not in request_decision.response:
+        decision_issues.append(f"The response does not address {state.requester_name}.")
     return decision_issues
 
 

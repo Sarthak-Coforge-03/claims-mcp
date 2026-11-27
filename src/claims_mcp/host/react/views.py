@@ -16,6 +16,8 @@ from claims_mcp.host.state.plan import Plan
 from claims_mcp.host.state.react_step import ReActStep
 
 NO_STEPS_YET = "Steps so far: none yet."
+NAME_NOT_KNOWN_YET = "not known yet"
+NO_EMPLOYEE_ID = "none (contractor)"
 
 
 def build_think_view(state: AgentState) -> str:
@@ -29,7 +31,7 @@ def build_think_view(state: AgentState) -> str:
         the steps so far (thought, action, action error, observation; no raw tool results).
     """
     sections = [
-        f"Request: {state.request}",
+        render_request(state),
         f"Today: {state.today.isoformat()}",
         render_tool_catalog(state.tool_specs),
     ]
@@ -37,6 +39,26 @@ def build_think_view(state: AgentState) -> str:
         sections.append(render_plan(state.plan))
     sections.append(render_steps_for_think(state.steps))
     return "\n\n".join(sections)
+
+
+def render_request(state: AgentState) -> str:
+    """Return who is asking and what they asked; the header every phase's view starts with.
+
+    Args:
+        state: The run state.
+
+    Returns:
+        Four lines: "Requester: employee|contractor", "Name: ..." ("not known yet" until the
+        employee record is read), "Employee ID: ..." ("none (contractor)"), "Request: ...".
+    """
+    name = state.requester_name if state.requester_name is not None else NAME_NOT_KNOWN_YET
+    employee_id = state.employee_id if state.employee_id is not None else NO_EMPLOYEE_ID
+    return (
+        f"Requester: {state.requester_type}\n"
+        f"Name: {name}\n"
+        f"Employee ID: {employee_id}\n"
+        f"Request: {state.request}"
+    )
 
 
 def render_plan(plan: Plan) -> str:
@@ -62,10 +84,10 @@ def build_act_view(state: AgentState) -> str:
         state: The run state; its current step holds THINK's chosen next action.
 
     Returns:
-        Two lines: "Request: ..." and "Next action: ...".
+        The request header, then "Next action: ...".
     """
     next_action = state.current_step.thought.next_action
-    return f"Request: {state.request}\nNext action: {next_action}"
+    return f"{render_request(state)}\nNext action: {next_action}"
 
 
 def build_observe_view(state: AgentState) -> str:
@@ -80,7 +102,7 @@ def build_observe_view(state: AgentState) -> str:
     """
     current_step = state.current_step
     lines = [
-        f"Request: {state.request}",
+        render_request(state),
         f"Intended action: {current_step.thought.next_action}",
     ]
     if current_step.action_error is not None:

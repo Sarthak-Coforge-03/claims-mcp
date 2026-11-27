@@ -7,15 +7,13 @@ class TemplateSelection(BaseModel):
     """The one template whose description fits the request, and the request's details.
 
     The model fills this in through structured outputs, so field descriptions are its instructions.
-    The code still checks template_name against the catalog before using it.
+    The code still checks template_name against the catalog before using it. The employee ID is
+    not asked for: it is an input on the state.
     """
 
     template_name: str | None = Field(
         description="The name of the one template whose description fits the request, "
         "exactly as listed. Null if no description fits."
-    )
-    employee_id: str | None = Field(
-        description="The employee ID as written in the request, e.g. E001. Null if none is given."
     )
     item: str | None = Field(
         description="The requested item in the request's own words, e.g. monitor. Null if none."

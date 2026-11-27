@@ -18,6 +18,8 @@ class Settings(BaseSettings):
 
     employees_file: Path = Path("data/employees.json")
     policies_file: Path = Path("data/policies.json")
+    # Written at runtime by flag_for_human_review; gitignored, created on the first escalation.
+    escalations_file: Path = Path("data/escalations.json")
 
 
 @lru_cache

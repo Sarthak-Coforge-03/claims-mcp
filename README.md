@@ -74,6 +74,7 @@ Settings are read from environment variables, or from a `.env` file in the repo 
 |----------|---------|---------|
 | `CLAIMS_MCP_EMPLOYEES_FILE` | `data/employees.json` | Employee records read by the backend |
 | `CLAIMS_MCP_POLICIES_FILE` | `data/policies.json` | Role policies (what each role may hold, how often) |
+| `CLAIMS_MCP_ESCALATIONS_FILE` | `data/escalations.json` | Escalations saved by `flag_for_human_review` (created on first use, gitignored) |
 
 Paths are relative to the working directory: the repo root on the host, `/app` in Docker.
 

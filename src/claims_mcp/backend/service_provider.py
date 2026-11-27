@@ -7,9 +7,13 @@ File locations come from claims_mcp.settings, so they can be changed through env
 from functools import lru_cache
 
 from claims_mcp.backend.repositories.json.json_employee_repository import JsonEmployeeRepository
+from claims_mcp.backend.repositories.json.json_escalation_repository import (
+    JsonEscalationRepository,
+)
 from claims_mcp.backend.repositories.json.json_policy_repository import JsonPolicyRepository
 from claims_mcp.backend.services.eligibility_service import EligibilityService
 from claims_mcp.backend.services.employee_service import EmployeeService
+from claims_mcp.backend.services.escalation_service import EscalationService
 from claims_mcp.backend.services.policy_service import PolicyService
 from claims_mcp.settings import get_settings
 
@@ -48,3 +52,15 @@ def get_eligibility_service() -> EligibilityService:
         An EligibilityService using get_employee_service() and get_policy_service().
     """
     return EligibilityService(get_employee_service(), get_policy_service())
+
+
+@lru_cache
+def get_escalation_service() -> EscalationService:
+    """Return the shared EscalationService, created on the first call and reused afterwards.
+
+    This is the one place that picks escalation storage; adding SQL later changes only this line.
+
+    Returns:
+        An EscalationService saving escalations to settings.escalations_file.
+    """
+    return EscalationService(JsonEscalationRepository(get_settings().escalations_file))

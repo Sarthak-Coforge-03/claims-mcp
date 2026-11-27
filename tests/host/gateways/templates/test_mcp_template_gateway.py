@@ -8,8 +8,8 @@ import pytest
 from mcp import Client
 from mcp.server import MCPServer
 
-from claims_mcp.host.templates.mcp_template_gateway import McpTemplateGateway
-from claims_mcp.host.templates.template_spec import TemplateSpec
+from claims_mcp.host.gateways.templates.mcp_template_gateway import McpTemplateGateway
+from claims_mcp.host.gateways.templates.template_spec import TemplateSpec
 
 test_server = MCPServer("template-gateway-test")
 

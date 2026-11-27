@@ -1,5 +1,7 @@
 """Plan node: write state.plan once, from a fitting MCP template or from the tool descriptions."""
 
+from claims_mcp.host.gateways.templates.template_gateway_base import TemplateGatewayBase
+from claims_mcp.host.gateways.templates.template_spec import TemplateSpec
 from claims_mcp.host.llm.adapters.chat_model_adapter_base import ChatModelAdapterBase
 from claims_mcp.host.llm.models.conversation import Conversation
 from claims_mcp.host.plan.plan_views import build_select_view, build_write_view
@@ -11,8 +13,6 @@ from claims_mcp.host.system_prompts.select_template_system_prompt import (
     SELECT_TEMPLATE_SYSTEM_PROMPT,
 )
 from claims_mcp.host.system_prompts.write_plan_system_prompt import WRITE_PLAN_SYSTEM_PROMPT
-from claims_mcp.host.templates.template_gateway_base import TemplateGatewayBase
-from claims_mcp.host.templates.template_spec import TemplateSpec
 
 
 async def run_plan_node(

@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from claims_mcp.host.templates.template_spec import TemplateSpec
+from claims_mcp.host.gateways.templates.template_spec import TemplateSpec
 
 
 class TemplateGatewayBase(ABC):

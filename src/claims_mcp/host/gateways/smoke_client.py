@@ -1,8 +1,8 @@
 """Smoke check: connect to the running MCP server over HTTP, list its tools, call one once.
 
 Proves the client → server plumbing works end to end. Start the server first, then run:
-    uv run python -m claims_mcp.mcp_server.server     (terminal 1)
-    uv run python -m claims_mcp.client.smoke_client   (terminal 2)
+    uv run python -m claims_mcp.mcp_server.server              (terminal 1)
+    uv run python -m claims_mcp.host.gateways.smoke_client     (terminal 2)
 The server URL comes from CLAIMS_MCP_SERVER_URL (default http://localhost:8000/mcp).
 """
 

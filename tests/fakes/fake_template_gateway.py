@@ -1,7 +1,7 @@
 """FakeTemplateGateway: a TemplateGatewayBase with canned template text per name; no MCP server."""
 
-from claims_mcp.host.templates.template_gateway_base import TemplateGatewayBase
-from claims_mcp.host.templates.template_spec import TemplateSpec
+from claims_mcp.host.gateways.templates.template_gateway_base import TemplateGatewayBase
+from claims_mcp.host.gateways.templates.template_spec import TemplateSpec
 
 
 class FakeTemplateGateway(TemplateGatewayBase):

@@ -12,11 +12,11 @@ from datetime import date
 import anyio
 from mcp import Client
 
+from claims_mcp.host.gateways.templates.mcp_template_gateway import McpTemplateGateway
+from claims_mcp.host.gateways.tools.mcp_tool_gateway import McpToolGateway
 from claims_mcp.host.llm.adapter_provider import create_chat_model_adapter
 from claims_mcp.host.run_agent import run_agent
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.templates.mcp_template_gateway import McpTemplateGateway
-from claims_mcp.host.tools.mcp_tool_gateway import McpToolGateway
 from claims_mcp.host.trace_printer import print_trace
 from claims_mcp.settings import get_settings
 

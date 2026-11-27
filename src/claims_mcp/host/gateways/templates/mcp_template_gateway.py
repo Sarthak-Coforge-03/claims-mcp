@@ -2,8 +2,8 @@
 
 from mcp import Client
 
-from claims_mcp.host.templates.template_gateway_base import TemplateGatewayBase
-from claims_mcp.host.templates.template_spec import TemplateSpec
+from claims_mcp.host.gateways.templates.template_gateway_base import TemplateGatewayBase
+from claims_mcp.host.gateways.templates.template_spec import TemplateSpec
 
 
 class McpTemplateGateway(TemplateGatewayBase):

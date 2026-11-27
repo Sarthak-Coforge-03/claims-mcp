@@ -1,12 +1,12 @@
 """ACT node: turn THINK's next action into one tool call and run it; OBSERVE always follows."""
 
+from claims_mcp.host.gateways.tools.tool_gateway_base import ToolGatewayBase
 from claims_mcp.host.llm.adapters.chat_model_adapter_base import ChatModelAdapterBase
 from claims_mcp.host.llm.models.conversation import Conversation
 from claims_mcp.host.react.views import build_act_view
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.react_phase import ReactPhase
 from claims_mcp.host.system_prompts.act_system_prompt import ACT_SYSTEM_PROMPT
-from claims_mcp.host.tools.tool_gateway_base import ToolGatewayBase
 
 EXPECTED_TOOL_CALL_COUNT = 1
 

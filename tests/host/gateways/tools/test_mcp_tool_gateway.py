@@ -12,8 +12,8 @@ from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import BaseModel
 
+from claims_mcp.host.gateways.tools.mcp_tool_gateway import McpToolGateway
 from claims_mcp.host.llm.models.tool_call import ToolCall
-from claims_mcp.host.tools.mcp_tool_gateway import McpToolGateway
 
 KNOWN_EMPLOYEE_ID = "E001"
 

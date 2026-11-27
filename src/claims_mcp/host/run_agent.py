@@ -3,13 +3,13 @@
 Each stage reads and writes the same AgentState; reflection's result is final (no loop back).
 """
 
+from claims_mcp.host.gateways.templates.template_gateway_base import TemplateGatewayBase
+from claims_mcp.host.gateways.tools.tool_gateway_base import ToolGatewayBase
 from claims_mcp.host.llm.adapters.chat_model_adapter_base import ChatModelAdapterBase
 from claims_mcp.host.plan.plan_node import run_plan_node
 from claims_mcp.host.react.react_loop import run_react_loop
 from claims_mcp.host.reflect.run_reflection import run_reflection
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.templates.template_gateway_base import TemplateGatewayBase
-from claims_mcp.host.tools.tool_gateway_base import ToolGatewayBase
 
 
 async def run_agent(

@@ -1,8 +1,8 @@
 """Views for the plan node's two model calls: SELECT a template, or WRITE a plan."""
 
+from claims_mcp.host.gateways.templates.template_spec import TemplateSpec
 from claims_mcp.host.react.views import render_tool_catalog
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.templates.template_spec import TemplateSpec
 
 
 def build_select_view(request: str, template_specs: list[TemplateSpec]) -> str:

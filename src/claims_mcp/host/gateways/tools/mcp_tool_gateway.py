@@ -5,10 +5,10 @@ import json
 from mcp import Client
 from mcp.types import CallToolResult
 
+from claims_mcp.host.gateways.tools.tool_gateway_base import ToolGatewayBase
 from claims_mcp.host.llm.models.tool_call import ToolCall
 from claims_mcp.host.llm.models.tool_result import ToolResult
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
-from claims_mcp.host.tools.tool_gateway_base import ToolGatewayBase
 
 
 class McpToolGateway(ToolGatewayBase):

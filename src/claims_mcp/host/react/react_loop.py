@@ -4,6 +4,7 @@ The driver holds no domain logic and makes no routing decisions; the nodes set n
 Its only rule is the step limit, checked before each THINK.
 """
 
+from claims_mcp.host.gateways.tools.tool_gateway_base import ToolGatewayBase
 from claims_mcp.host.llm.adapters.chat_model_adapter_base import ChatModelAdapterBase
 from claims_mcp.host.react.act_node import run_act_node
 from claims_mcp.host.react.observe_node import run_observe_node
@@ -11,7 +12,6 @@ from claims_mcp.host.react.think_node import run_think_node
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.agent_stop_reason import AgentStopReason
 from claims_mcp.host.state.react_phase import ReactPhase
-from claims_mcp.host.tools.tool_gateway_base import ToolGatewayBase
 
 
 async def run_react_loop(

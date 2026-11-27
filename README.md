@@ -94,12 +94,12 @@ The smoke client connects to it, lists the tools and calls `get_employee_info` o
 ```bash
 # Docker
 docker compose up -d mcp_server     # start in the background; `docker compose ps` shows "healthy"
-docker compose run --rm dev uv run python -m claims_mcp.client.smoke_client
+docker compose run --rm dev uv run python -m claims_mcp.host.gateways.smoke_client
 docker compose down                 # stop it
 
 # Host (two terminals)
 uv run python -m claims_mcp.mcp_server.server
-uv run python -m claims_mcp.client.smoke_client
+uv run python -m claims_mcp.host.gateways.smoke_client
 ```
 
 To inspect it by hand, run `npx @modelcontextprotocol/inspector`. Pick the **Streamable HTTP**
@@ -171,8 +171,8 @@ src/claims_mcp/
   settings.py       configuration from CLAIMS_MCP_* environment variables
   backend/          business domain, no MCP: models/, repositories/ (base/ + json/; SQL optional later), services/
   mcp_server/       MCP server exposing backend services as tools
-  client/           MCP client code; smoke check: uv run python -m claims_mcp.client.smoke_client
-  host/             the agent: llm/ adapter, tools/ + templates/ MCP gateways, state/, plan/ node,
+  host/             the agent: llm/ adapter, gateways/ (tools, templates, smoke_client), state/,
+                    plan/ node,
                     react/ nodes + loop, reflect/ critique + revise, system_prompts/; talks to
                     the backend only through MCP
 data/               mock data (employees.json, policies.json)

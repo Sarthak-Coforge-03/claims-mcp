@@ -21,6 +21,8 @@ Rules:
 flag_for_human_review with employee_id "contractor", the contractor's name and request in \
 request, and a reason starting "ESC-3:". Do not look anyone up.
 - Address the requester by the Name shown in the request header.
+- The reply states only what the observations confirmed. For an escalation, say it is pending \
+review and give its escalation_id; promise no follow-ups, contact, timelines or outcomes.
 - Follow the plan's steps in order. The observations still decide: if they fit none of the \
 plan's steps, decide from the observations.
 - Start with get_employee_info. If the role is contractor, escalate (ESC-3). If hire_date is \

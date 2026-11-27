@@ -10,5 +10,6 @@ its raw result, and a critique of the draft. Return the corrected decision:
 escalation_id exactly as a result states it.
 - No call can be made now. If a fact the decision needs was never returned, say so plainly in \
 the response instead of claiming it.
-- Promise nothing the tool results didn't confirm.
+- Promise nothing the tool results didn't confirm. For an escalation, state only that it is \
+pending review and its escalation_id: no follow-ups, contact, timelines or likely outcomes.
 - Address the requester by exactly the Name in the request header."""

@@ -32,14 +32,14 @@ async def run_plan_node(
     template_specs = await template_gateway.list_template_specs()
     select_conversation = Conversation.start(
         SELECT_TEMPLATE_SYSTEM_PROMPT,
-        build_select_view(state.request, template_specs),
+        build_select_view(state, template_specs),
         tool_specs=[],
     )
     selection = adapter.complete_structured(select_conversation, TemplateSelection)
 
-    if is_usable_selection(selection, template_specs):
+    if is_usable_selection(selection, template_specs, state.employee_id):
         template_text = await template_gateway.get_template_text(
-            selection.template_name, build_template_arguments(selection)
+            selection.template_name, build_template_arguments(selection, state.employee_id)
         )
         state.plan = Plan(
             source=PlanSource.MCP_TEMPLATE,
@@ -56,34 +56,39 @@ async def run_plan_node(
         )
 
 
-def is_usable_selection(selection: TemplateSelection, template_specs: list[TemplateSpec]) -> bool:
+def is_usable_selection(
+    selection: TemplateSelection, template_specs: list[TemplateSpec], employee_id: str | None
+) -> bool:
     """Return whether the selected template exists and can be filled in.
 
     Args:
         selection: SELECT's reply.
         template_specs: The templates the server offers.
+        employee_id: The state's employee ID; None for a contractor.
 
     Returns:
-        True when template_name is one of the server's templates and employee_id and item are
-        set; the model's choice is never trusted without this check.
+        True when template_name is one of the server's templates, an employee ID is given and
+        the item is set. A contractor (no ID) never gets a template; the model's choice is never
+        trusted without this check.
     """
     template_names = [template_spec.name for template_spec in template_specs]
     is_known_template = selection.template_name in template_names
-    has_required_arguments = selection.employee_id is not None and selection.item is not None
+    has_required_arguments = employee_id is not None and selection.item is not None
     return is_known_template and has_required_arguments
 
 
-def build_template_arguments(selection: TemplateSelection) -> dict[str, str]:
-    """Return the template arguments from SELECT's reply, all as text (MCP prompt arguments).
+def build_template_arguments(selection: TemplateSelection, employee_id: str) -> dict[str, str]:
+    """Return the template arguments, all as text (MCP prompt arguments are strings).
 
     Args:
-        selection: A usable selection (employee_id and item are set).
+        selection: A usable selection (the item is set).
+        employee_id: The state's employee ID.
 
     Returns:
-        {"employee_id", "item", "reason", "quantity"} mapped to the selection's values.
+        {"employee_id", "item", "reason", "quantity"}: the ID from the state, the rest from SELECT.
     """
     return {
-        "employee_id": selection.employee_id,
+        "employee_id": employee_id,
         "item": selection.item,
         "reason": selection.reason,
         "quantity": selection.quantity,

@@ -1,24 +1,24 @@
 """Views for the plan node's two model calls: SELECT a template, or WRITE a plan."""
 
 from claims_mcp.host.gateways.templates.template_spec import TemplateSpec
-from claims_mcp.host.react.views import render_tool_catalog
+from claims_mcp.host.react.views import render_request, render_tool_catalog
 from claims_mcp.host.state.agent_state import AgentState
 
 
-def build_select_view(request: str, template_specs: list[TemplateSpec]) -> str:
-    """Return SELECT's view: the request and one line per template with its description.
+def build_select_view(state: AgentState, template_specs: list[TemplateSpec]) -> str:
+    """Return SELECT's view: the request header and one line per template with its description.
 
     Args:
-        request: The employee's request.
+        state: The run state, before the loop has started.
         template_specs: The templates the server offers.
 
     Returns:
-        "Request: ..." then an "Available templates:" block.
+        The request header, then an "Available templates:" block.
     """
     template_lines = [
         f"- {template_spec.name}: {template_spec.description}" for template_spec in template_specs
     ]
-    return f"Request: {request}\n\nAvailable templates:\n" + "\n".join(template_lines)
+    return f"{render_request(state)}\n\nAvailable templates:\n" + "\n".join(template_lines)
 
 
 def build_write_view(state: AgentState) -> str:
@@ -31,7 +31,7 @@ def build_write_view(state: AgentState) -> str:
         The three sections separated by blank lines.
     """
     sections = [
-        f"Request: {state.request}",
+        render_request(state),
         f"Today: {state.today.isoformat()}",
         render_tool_catalog(state.tool_specs),
     ]

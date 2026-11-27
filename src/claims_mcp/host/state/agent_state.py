@@ -5,7 +5,7 @@ from datetime import date
 from pydantic import BaseModel
 
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
-from claims_mcp.host.state.enums import AgentStopReason, ReactPhase
+from claims_mcp.host.state.enums import AgentStopReason, ReactPhase, RequesterType
 from claims_mcp.host.state.plan import Plan
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.reflection import Reflection
@@ -16,8 +16,12 @@ class AgentState(BaseModel):
     """Inputs, progress and outcome of one run; each phase reads a view of it and writes back.
 
     The plan node writes plan before the loop; reflection is written after it, once.
+    requester_name is given by a contractor; for an employee, ACT copies it from the record.
     """
 
+    requester_type: RequesterType
+    employee_id: str | None
+    requester_name: str | None = None
     request: str
     today: date
     tool_specs: list[ToolSpec]

@@ -22,7 +22,7 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 ## Commands (develop in Docker; `uv` manages deps)
 - Docker: `docker compose build` (again after dep changes) · tests: `docker compose run --rm dev uv run pytest` · shell: `docker compose run --rm dev bash`
 - Sync env: `uv sync` · Add dep on host: `uv add <pkg>` (dev: `uv add --dev <pkg>`), then rebuild
-- Run entry point: `uv run claims-mcp` (`claims_mcp:main`, exported from `src/claims_mcp/__init__.py`)
+- Run entry point: `uv run claims-mcp` opens the interactive CLI (`claims_mcp.host.agent.cli:main`; server must be running)
 - Tests (`tests/`): `uv run pytest` · single: `uv run pytest path/to/test_file.py::test_name`
 - Coverage (pytest-cov, branch) prints on every run; HTML report: `uv run pytest --cov-report=html` → `htmlcov/`
 - Lint/format (ruff, config in `pyproject.toml`): `uv run ruff check --fix . && uv run ruff format .`

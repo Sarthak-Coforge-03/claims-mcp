@@ -13,7 +13,7 @@ from claims_mcp.host.llm.models.tool_result import ToolResult
 from claims_mcp.host.reflect.run_reflection import run_reflection
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.critique import Critique
-from claims_mcp.host.state.enums import RequestOutcome, ThoughtDecision
+from claims_mcp.host.state.enums import RequesterType, RequestOutcome, ThoughtDecision
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.request_decision import RequestDecision
 from claims_mcp.host.state.thought import Thought
@@ -73,7 +73,9 @@ def build_state(request_decision: RequestDecision) -> AgentState:
         observation="ELG-2 applies.",
     )
     return AgentState(
-        request="Employee E001: my monitor is old, I'd like a new one.",
+        requester_type=RequesterType.EMPLOYEE,
+        employee_id="E001",
+        request="my monitor is old, I'd like a new one.",
         today=date(2026, 11, 27),
         tool_specs=[],
         max_steps=5,

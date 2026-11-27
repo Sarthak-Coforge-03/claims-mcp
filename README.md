@@ -83,6 +83,7 @@ Settings are read from environment variables, or from a `.env` file in the repo 
 | `CLAIMS_MCP_MODEL_DEPLOYMENT` | `claude-opus-5-5-fast` | Foundry deployment the host agent calls |
 | `CLAIMS_MCP_MODEL_EFFORT` | `medium` | How much the model thinks (`low` … `max`) |
 | `CLAIMS_MCP_MAX_REACT_STEPS` | `5` | Most THINK → ACT → OBSERVE cycles before the agent stops (at least 1) |
+| `CLAIMS_MCP_SHOW_TRACE` | `true` | `true` prints the whole run (plan, steps, reflection); `false` only the final decision |
 
 Paths are relative to the working directory: the repo root on the host, `/app` in Docker.
 

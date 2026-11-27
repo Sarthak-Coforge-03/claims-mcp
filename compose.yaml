@@ -22,10 +22,11 @@ services:
       # compose puts both services on one network where "mcp_server" resolves to that container.
       # No depends_on: plain test runs shouldn't start the server. Start it with `up -d` first.
       CLAIMS_MCP_SERVER_URL: http://mcp_server:8000/mcp
-    # Later, at the agent step, the API key gets loaded from a local env file here, e.g.:
-    # env_file:
-    #   - path: .env
-    #     required: false
+    # The host's LLM settings (Foundry resource + API key) come from the local .env file.
+    # required: false keeps tests working on machines without one.
+    env_file:
+      - path: .env
+        required: false
 
   # "mcp_server" runs the MCP server over Streamable HTTP until stopped.
   # Start: `docker compose up -d mcp_server` · logs: `docker compose logs -f mcp_server`

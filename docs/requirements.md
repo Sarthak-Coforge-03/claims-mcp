@@ -84,6 +84,10 @@ The agent checks these **in order** and stops at the first match.
 | ESC-4 | the employee was hired **less than 90 days** before today | probation period; the manager's sign-off is needed |
 | ESC-5 | not eligible under ELG-3, **but** the reason claims damage, breakage, loss, theft, a medical need or an accessibility need | possible exception; needs proof and approval |
 | ESC-6 | the requested `quantity` is above the role's max held for that item | it can't be partially approved automatically |
+| ESC-7 | no rule above decides the request: it isn't asking for an item to be allocated (e.g. shipping, a return, a repair), or the tool results fit no rule | no rule decides it |
+
+ESC-7 is checked last. It applies only when no other ESC, DEN or ELG rule matched, and never in
+place of a more specific ESC rule.
 
 ### 6.2 Deny (`DEN`)
 
@@ -132,6 +136,7 @@ relative to `date.today()` instead of relying on these rows.
 | 9 | E004 (manager): three monitors | **Escalate** | ESC-6 | quantity 3 is above the max held of 2 |
 | 10 | E001 (standard): a standing desk | **Escalate** | ESC-2 | not a catalog item |
 | 11 | E999: a monitor | **Escalate** | ESC-1 | unknown employee ID |
+| 12 | E004 (manager): "please ship my current monitors to the Pune office" | **Escalate** | ESC-7 | shipping held equipment isn't an allocation; no rule covers it |
 
 The Part 6 demo runs scenarios **1** (approve), **4** (deny), **6** and **7** (escalations for two
 different reasons). The other scenarios are edge cases for tests and optional extra demo runs.

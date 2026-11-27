@@ -2,7 +2,7 @@
 
 An internal **IT equipment request handler**. An MCP server exposes tools over mock employee and policy data. A ReAct agent then uses those tools to approve or deny equipment requests, or to escalate unclear ones to a human reviewer.
 
-> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent is not built yet.
+> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent plans, runs its ReAct loop, then reflects on its draft, end to end.
 
 ## Prerequisites
 
@@ -78,6 +78,11 @@ Settings are read from environment variables, or from a `.env` file in the repo 
 | `CLAIMS_MCP_SERVER_HOST` | `127.0.0.1` | Interface the MCP server listens on (compose sets `0.0.0.0`) |
 | `CLAIMS_MCP_SERVER_PORT` | `8000` | Port the MCP server listens on |
 | `CLAIMS_MCP_SERVER_URL` | `http://localhost:8000/mcp` | Where clients connect (compose's `dev` uses `http://mcp_server:8000/mcp`) |
+| `CLAIMS_MCP_FOUNDRY_RESOURCE` | (none) | Azure Foundry resource hosting Claude; set in `.env` |
+| `CLAIMS_MCP_FOUNDRY_API_KEY` | (none) | API key for that resource; set in `.env` only |
+| `CLAIMS_MCP_MODEL_DEPLOYMENT` | `claude-opus-5-5-fast` | Foundry deployment the host agent calls |
+| `CLAIMS_MCP_MODEL_EFFORT` | `medium` | How much the model thinks (`low` … `max`) |
+| `CLAIMS_MCP_MAX_REACT_STEPS` | `5` | Most THINK → ACT → OBSERVE cycles before the agent stops (at least 1) |
 
 Paths are relative to the working directory: the repo root on the host, `/app` in Docker.
 
@@ -89,16 +94,59 @@ The smoke client connects to it, lists the tools and calls `get_employee_info` o
 ```bash
 # Docker
 docker compose up -d mcp_server     # start in the background; `docker compose ps` shows "healthy"
-docker compose run --rm dev uv run python -m claims_mcp.client.smoke_client
+docker compose run --rm dev uv run python -m claims_mcp.host.gateways.smoke_client
 docker compose down                 # stop it
 
 # Host (two terminals)
 uv run python -m claims_mcp.mcp_server.server
-uv run python -m claims_mcp.client.smoke_client
+uv run python -m claims_mcp.host.gateways.smoke_client
 ```
 
 To inspect it by hand, run `npx @modelcontextprotocol/inspector`. Pick the **Streamable HTTP**
 transport, enter the URL `http://localhost:8000/mcp`, then use the Tools and Prompts tabs.
+
+## Running the agent
+
+The host agent (`src/claims_mcp/host/`) keeps one shared `AgentState` for the whole run. Each
+phase is its own model call, with its own system prompt, and sees only a view of that state.
+
+First, once, the **plan** node writes `state.plan`:
+- **SELECT** (structured output) picks the server's scenario template (MCP prompt) whose
+  description fits the request, and pulls out the employee ID, item, reason and quantity. If the
+  template exists and the ID and item are there, the filled-in template is the plan.
+- Otherwise **WRITE** drafts a short plan from the tool descriptions.
+
+Then the ReAct loop:
+- **THINK** (structured output, no tools) sees the request, today's date, the tool catalog, the
+  plan and every earlier step's observation. It continues with one next action, or finishes with
+  the final answer. It is the only phase that chooses where the run goes.
+- **ACT** (with the tools) sees the request and THINK's next action, and makes that one tool
+  call. A reply without exactly one call is recorded as an action error; the run continues.
+- **OBSERVE** (no tools) sees the call and its raw result, and states what the result establishes.
+
+ACT → OBSERVE → THINK is fixed by code. The run stops when THINK finishes, or after
+`CLAIMS_MCP_MAX_REACT_STEPS` cycles.
+
+When THINK finished with a decision, **reflection** runs once on that draft:
+- **CRITIQUE** (structured output, no tools) sees the draft next to every tool call's raw result,
+  plus two code checks (an unknown rule ID; an escalation that was never filed). It answers: does
+  the draft address the request, follow the policy, avoid unconfirmed promises, and match the tool
+  results?
+- **REVISE** runs only if any answer is no: it rewrites the decision to fix each issue, using only
+  facts from the tool results. Otherwise the draft is final.
+
+Reflection's result is final; the run never loops back. The trace is printed from the finished
+state: the plan, each step, the reflection, then the final decision.
+
+It needs the Foundry settings in `.env` (see Configuration) and a running server:
+
+```bash
+uv run python -m claims_mcp.host.llm.llm_smoke     # one model call, no tools: checks the LLM wiring
+docker compose up -d --wait mcp_server
+uv run python -m claims_mcp.host.agent.run_demo   # scenario 1: plan, each step, reflection
+uv run python -m claims_mcp.host.agent.run_demo "Employee E004: I need three monitors."   # any request
+docker compose down
+```
 
 ## Tests and coverage
 
@@ -123,8 +171,10 @@ src/claims_mcp/
   settings.py       configuration from CLAIMS_MCP_* environment variables
   backend/          business domain, no MCP: models/, repositories/ (base/ + json/; SQL optional later), services/
   mcp_server/       MCP server exposing backend services as tools
-  client/           MCP client code; smoke check: uv run python -m claims_mcp.client.smoke_client
-  agent/            (coming) ReAct agent; talks to the backend only through MCP
+  host/             the agent: agent/ (run_agent, run_demo, trace printer), llm/ adapter +
+                    llm_smoke, gateways/ (tools, templates, smoke_client), state/ (+ enums.py),
+                    plan/ node, react/ nodes + loop, reflect/ critique + revise (each with its
+                    own prompts/); talks to the backend only through MCP
 data/               mock data (employees.json, policies.json)
 tests/              unit tests, mirroring src/ (tests/backend/...); test doubles in tests/fakes/
 Dockerfile          dev image (multi-stage: base → dev)

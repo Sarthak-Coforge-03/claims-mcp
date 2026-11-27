@@ -32,6 +32,20 @@ def test_every_prompt_starts_with_the_opening_checks():
     assert prompts_missing_checks == []
 
 
+def test_every_prompt_fallback_escalates_with_esc_7():
+    """Each template's fallback, for results that fit none of its steps, escalates under ESC-7,
+    so even an unmatched case is escalated with a rule ID."""
+    today = date(2026, 11, 26)
+
+    prompts_without_esc_7_fallback = [
+        build_prompt.__name__
+        for build_prompt in PROMPT_BUILDERS
+        if "escalate with ESC-7" not in build_prompt("E100", "laptop", "it is slow", "1", today)
+    ]
+
+    assert prompts_without_esc_7_fallback == []
+
+
 def test_every_prompt_fills_in_the_request():
     """Each template states its request: E100, laptop, quantity 3, the reason and the date."""
     today = date(2026, 11, 26)

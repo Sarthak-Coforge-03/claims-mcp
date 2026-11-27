@@ -61,3 +61,18 @@ async def test_get_employee_info_tool_unknown_id_returns_error_result(in_memory_
         result = await client.call_tool("get_employee_info", tool_arguments)
 
     assert result.is_error is True
+
+
+@pytest.mark.anyio
+async def test_check_request_eligibility_item_argument_asks_for_bare_catalog_item():
+    """The item argument the agent reads says to pass "monitor", not the employee's description.
+
+    Passing "Dell 27-inch monitor" made the tool return ESC-2 for a plain monitor replacement.
+    """
+    async with Client(mcp) as client:
+        tools_result = await client.list_tools()
+
+    input_schema_by_tool_name = {tool.name: tool.input_schema for tool in tools_result.tools}
+    eligibility_schema = input_schema_by_tool_name["check_request_eligibility"]
+    item_description = eligibility_schema["properties"]["item"]["description"]
+    assert '"a new Dell 27-inch monitor" is "monitor"' in item_description

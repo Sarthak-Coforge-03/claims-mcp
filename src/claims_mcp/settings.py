@@ -7,13 +7,14 @@ Paths are relative to the working directory: the repo root on the host, /app in 
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Configuration values for the backend and MCP server, loaded once via get_settings()."""
+    """Configuration for the backend, MCP server and host LLM, loaded once via get_settings()."""
 
-    # extra="ignore": other keys in .env (e.g. ANTHROPIC_API_KEY for the host) don't break loading.
+    # extra="ignore": other keys in .env (not CLAIMS_MCP_-prefixed) don't break loading.
     model_config = SettingsConfigDict(env_prefix="CLAIMS_MCP_", env_file=".env", extra="ignore")
 
     employees_file: Path = Path("data/employees.json")
@@ -27,6 +28,18 @@ class Settings(BaseSettings):
     server_port: int = 8000
     # Where clients (smoke client, host agent) connect; /mcp is the SDK's default endpoint.
     server_url: str = "http://localhost:8000/mcp"
+
+    # Host LLM: Claude on Microsoft Foundry (Azure). The resource name and key live in .env only.
+    # The client builds https://<resource>.services.ai.azure.com/anthropic/ from the resource name.
+    foundry_resource: str = ""
+    foundry_api_key: SecretStr | None = None
+    # On Foundry, fast mode is its own deployment (the "-fast" suffix), not a request parameter.
+    model_deployment: str = "claude-opus-5-5-fast"
+    # Opus 5.5 always thinks; effort ("low".."max") sets how much. Its default is "medium".
+    model_effort: str = "medium"
+    # Most THINK → ACT → OBSERVE cycles per run; the longest scenario (lookup, eligibility,
+    # escalation, then the finishing THINK) fits in 5. ge=1 rejects 0 when settings load.
+    max_react_steps: int = Field(default=5, ge=1)
 
 
 @lru_cache

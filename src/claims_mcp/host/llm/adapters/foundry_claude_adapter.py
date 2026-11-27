@@ -10,7 +10,10 @@ Claude-specific rules this adapter follows (Opus 5.5):
 from anthropic import AnthropicFoundry
 from anthropic.types import Message
 
-from claims_mcp.host.llm.adapters.chat_model_adapter_base import ChatModelAdapterBase
+from claims_mcp.host.llm.adapters.chat_model_adapter_base import (
+    ChatModelAdapterBase,
+    OutputModelT,
+)
 from claims_mcp.host.llm.models.conversation import Conversation
 from claims_mcp.host.llm.models.model_turn import ModelTurn
 from claims_mcp.host.llm.models.tool_call import ToolCall
@@ -58,6 +61,38 @@ class FoundryClaudeAdapter(ChatModelAdapterBase):
             output_config={"effort": self.effort},
         )
         return build_model_turn(response)
+
+    def complete_structured(
+        self, conversation: Conversation, output_model: type[OutputModelT]
+    ) -> OutputModelT:
+        """Ask Claude for a reply matching output_model, using structured outputs; no tools.
+
+        Args:
+            conversation: The system prompt and history to send; its tool specs are ignored.
+            output_model: The pydantic model class the reply must match.
+
+        Returns:
+            The reply validated as an output_model instance.
+
+        Raises:
+            ValueError: If Claude returned no parseable output (e.g. stop_reason "refusal").
+        """
+        response = self.client.messages.parse(
+            model=self.model_deployment,
+            max_tokens=MAX_OUTPUT_TOKENS,
+            system=conversation.system_prompt,
+            messages=build_anthropic_messages(conversation),
+            thinking=THINKING_CONFIG,
+            output_config={"effort": self.effort},
+            output_format=output_model,
+        )
+        if response.parsed_output is None:
+            refusal_category = response.stop_details.category if response.stop_details else None
+            raise ValueError(
+                f"No {output_model.__name__} in the reply "
+                f"(stop_reason={response.stop_reason}, refusal_category={refusal_category})"
+            )
+        return response.parsed_output
 
 
 def build_anthropic_tool(tool_spec: ToolSpec) -> dict:
@@ -119,15 +154,14 @@ def build_tool_results_message(tool_results_message: ToolResultsMessage) -> dict
 
 
 def build_model_turn(message: Message) -> ModelTurn:
-    """Reduce a Claude response to a ModelTurn: thought, tool calls or final answer, raw blocks.
+    """Map a Claude response's blocks onto a ModelTurn, without judging what the reply means.
 
     Args:
         message: The assistant Message returned by messages.create.
 
     Returns:
-        With tool_use blocks: thought_text = thinking summaries + text, final_text None.
-        Without: thought_text = thinking summaries, final_text = the text blocks.
-        provider_content always holds every block as a JSON dict, for replay.
+        text = the text blocks joined, reasoning_summary = the thinking summaries joined,
+        tool_calls = one ToolCall per tool_use block, provider_content = every block as JSON.
     """
     thinking_texts = []
     reply_texts = []
@@ -142,19 +176,10 @@ def build_model_turn(message: Message) -> ModelTurn:
     provider_content = [
         block.model_dump(mode="json", exclude_none=True) for block in message.content
     ]
-
-    if tool_calls:
-        return ModelTurn(
-            thought_text="\n".join(thinking_texts + reply_texts),
-            tool_calls=tool_calls,
-            final_text=None,
-            stop_reason=message.stop_reason,
-            provider_content=provider_content,
-        )
     return ModelTurn(
-        thought_text="\n".join(thinking_texts),
-        tool_calls=[],
-        final_text="\n".join(reply_texts),
+        text="\n".join(reply_texts),
+        reasoning_summary="\n".join(thinking_texts),
+        tool_calls=tool_calls,
         stop_reason=message.stop_reason,
         provider_content=provider_content,
     )

@@ -3,9 +3,14 @@
 Responses are built by hand as SDK Message objects, the shape the Anthropic API returns.
 """
 
+from types import SimpleNamespace
+
+import pytest
 from anthropic.types import Message
+from pydantic import BaseModel
 
 from claims_mcp.host.llm.adapters.foundry_claude_adapter import (
+    FoundryClaudeAdapter,
     build_anthropic_messages,
     build_anthropic_tool,
     build_model_turn,
@@ -32,6 +37,20 @@ def build_message(content_blocks: list[dict], stop_reason: str) -> Message:
     )
 
 
+class Verdict(BaseModel):
+    """A tiny structured output model for the complete_structured tests."""
+
+    verdict: str
+
+
+def build_adapter_with_parse_response(parse_response: SimpleNamespace) -> FoundryClaudeAdapter:
+    """Return an adapter whose stub client's messages.parse always returns parse_response."""
+    stub_client = SimpleNamespace(
+        messages=SimpleNamespace(parse=lambda **request_fields: parse_response)
+    )
+    return FoundryClaudeAdapter(stub_client, "claude-opus-5-5-fast", "medium")
+
+
 def test_build_anthropic_tool_maps_name_description_and_schema():
     """A ToolSpec becomes the Anthropic tool dict: name, description and input_schema as given."""
     employee_id_schema = {
@@ -54,8 +73,8 @@ def test_build_anthropic_tool_maps_name_description_and_schema():
     }
 
 
-def test_build_model_turn_tool_use_response_returns_thought_and_tool_call():
-    """Thinking summary + text before a tool_use become the thought; the call becomes a ToolCall."""
+def test_build_model_turn_tool_use_response_maps_each_block_kind():
+    """Thinking goes to reasoning_summary, text to text, tool_use to a ToolCall; nothing judged."""
     message = build_message(
         [
             {"type": "thinking", "thinking": "Need the employee first.", "signature": "sig"},
@@ -72,15 +91,15 @@ def test_build_model_turn_tool_use_response_returns_thought_and_tool_call():
 
     model_turn = build_model_turn(message)
 
-    assert model_turn.thought_text == "Need the employee first.\nI'll look up E001."
+    assert model_turn.reasoning_summary == "Need the employee first."
+    assert model_turn.text == "I'll look up E001."
     assert model_turn.tool_calls == [
         ToolCall(id="toolu_1", name="get_employee_info", arguments={"employee_id": "E001"})
     ]
-    assert model_turn.final_text is None
 
 
-def test_build_model_turn_text_only_response_returns_final_text():
-    """A response with no tool_use is the final answer: its text is final_text, no tool calls."""
+def test_build_model_turn_text_only_response_has_text_and_no_tool_calls():
+    """A text-only reply maps to text and an empty tool_calls list; it is not marked final."""
     message = build_message(
         [{"type": "text", "text": "Approved under ELG-2 (POL-STD-MONITOR)."}],
         stop_reason="end_turn",
@@ -88,8 +107,38 @@ def test_build_model_turn_text_only_response_returns_final_text():
 
     model_turn = build_model_turn(message)
 
-    assert model_turn.final_text == "Approved under ELG-2 (POL-STD-MONITOR)."
+    assert model_turn.text == "Approved under ELG-2 (POL-STD-MONITOR)."
     assert model_turn.tool_calls == []
+
+
+def test_complete_structured_returns_parsed_output():
+    """complete_structured returns the parsed pydantic object the SDK's messages.parse produced."""
+    parsed_verdict = Verdict(verdict="approve")
+    adapter = build_adapter_with_parse_response(
+        SimpleNamespace(parsed_output=parsed_verdict, stop_reason="end_turn", stop_details=None)
+    )
+    conversation = Conversation.start("Decide.", "E001 wants a monitor", [])
+
+    structured_output = adapter.complete_structured(conversation, Verdict)
+
+    assert structured_output == Verdict(verdict="approve")
+
+
+def test_complete_structured_refusal_raises_with_category():
+    """A refusal (no parsed output) raises ValueError naming stop reason and refusal category."""
+    adapter = build_adapter_with_parse_response(
+        SimpleNamespace(
+            parsed_output=None,
+            stop_reason="refusal",
+            stop_details=SimpleNamespace(category="reasoning_extraction"),
+        )
+    )
+    conversation = Conversation.start("Decide.", "E001 wants a monitor", [])
+
+    with pytest.raises(
+        ValueError, match="stop_reason=refusal, refusal_category=reasoning_extraction"
+    ):
+        adapter.complete_structured(conversation, Verdict)
 
 
 def test_build_model_turn_keeps_raw_blocks_as_provider_content():

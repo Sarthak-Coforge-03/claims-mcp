@@ -1,4 +1,4 @@
-"""ModelTurn: one model response, reduced to what the ReAct loop needs, plus its raw blocks."""
+"""ModelTurn: one model response in provider-neutral fields, plus its raw blocks."""
 
 from typing import Literal
 
@@ -9,17 +9,16 @@ from claims_mcp.host.llm.models.tool_call import ToolCall
 
 
 class ModelTurn(BaseModel):
-    """One model reply: its reasoning, the tools it wants to call, or its final answer.
+    """One model reply, reported as returned; callers decide what it means, the adapter doesn't.
 
-    A turn with tool_calls is a Thought + Action step (final_text None); a turn without is the
-    final answer (final_text set). stop_reason is the provider's raw value, e.g. "end_turn".
-    provider_content is the reply exactly as the provider returned it (JSON dicts). The loop never
-    reads it; the adapter replays it, because Claude requires its thinking blocks back unchanged.
+    text is every text block joined; reasoning_summary is the thinking summaries joined.
+    stop_reason is the provider's raw value, e.g. "end_turn". provider_content is the reply exactly
+    as the provider returned it (JSON dicts), kept so an adapter can replay it unchanged.
     """
 
     role: Literal[MessageRole.ASSISTANT] = MessageRole.ASSISTANT
-    thought_text: str
+    text: str
+    reasoning_summary: str
     tool_calls: list[ToolCall]
-    final_text: str | None
     stop_reason: str
     provider_content: list[dict]

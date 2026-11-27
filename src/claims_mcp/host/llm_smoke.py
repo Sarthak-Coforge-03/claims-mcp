@@ -19,7 +19,7 @@ def main() -> None:
     model_turn = adapter.complete(conversation)
 
     print(f"stop_reason={model_turn.stop_reason}")
-    print(f"final_text={model_turn.final_text!r}")
+    print(f"text={model_turn.text!r}")
 
 
 if __name__ == "__main__":

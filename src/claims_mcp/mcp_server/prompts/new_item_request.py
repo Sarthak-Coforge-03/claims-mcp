@@ -5,12 +5,12 @@ from datetime import date
 from claims_mcp.mcp_server.prompts.shared_steps import build_template
 
 NEW_ITEM_STEPS = """Then, for a new item:
-4. Call check_request_eligibility(employee_id, item).
-5. rule_id ESC-2 (not in the catalog): escalate with ESC-2.
-6. Quantity above max_held: escalate with ESC-6.
-7. rule_id DEN-2 (role not entitled): call get_policy_limits for the other roles, then deny with
-   DEN-2 and name the role the item is limited to.
-8. rule_id ELG-1 (below the limit): approve, citing ELG-1 and policy_rule_id."""
+- Call check_request_eligibility(employee_id, item).
+- rule_id ESC-2 (not in the catalog): escalate with ESC-2.
+- Quantity above max_held: escalate with ESC-6.
+- rule_id DEN-2 (role not entitled): call get_policy_limits for the other roles, then deny with
+  DEN-2 and name the role the item is limited to.
+- rule_id ELG-1 (below the limit): approve, citing ELG-1 and policy_rule_id."""
 
 
 def build_new_item_request_prompt(

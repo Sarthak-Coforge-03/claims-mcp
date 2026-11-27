@@ -44,12 +44,12 @@ def build_opening_checks(employee_id: str, today: date) -> str:
         today: The date the request is handled, used for the probation check.
 
     Returns:
-        Plain text: the numbered opening steps, ending with how to escalate.
+        Plain text: the opening checks as bullets, ending with how to escalate.
     """
     return f"""First, for every request:
-1. Call get_employee_info("{employee_id}"). If it returns an error, escalate with ESC-1.
-2. If role is contractor, escalate with ESC-3.
-3. If hire_date is less than {PROBATION_DAYS} days before {today.isoformat()}, escalate with ESC-4.
+- Call get_employee_info("{employee_id}"). If it returns an error, escalate with ESC-1.
+- If role is contractor, escalate with ESC-3.
+- If hire_date is less than {PROBATION_DAYS} days before {today.isoformat()}, escalate with ESC-4.
 
 To escalate, call flag_for_human_review(employee_id, request, reason) once, with the rule ID first
 in reason (e.g. "ESC-3: contractor"), then stop."""

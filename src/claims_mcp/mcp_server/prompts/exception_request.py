@@ -5,9 +5,9 @@ from datetime import date
 from claims_mcp.mcp_server.prompts.shared_steps import build_template
 
 EXCEPTION_STEPS = """Then, for a claimed exception:
-4. Call check_request_eligibility(employee_id, item).
-5. rule_id ELG-3 (too soon): escalate with ESC-5, quoting the claim from the reason.
-6. rule_id ELG-1 or ELG-2: approve, citing the rule and policy_rule_id; the claim doesn't matter."""
+- Call check_request_eligibility(employee_id, item).
+- rule_id ELG-3 (too soon): escalate with ESC-5, quoting the claim from the reason.
+- rule_id ELG-1 or ELG-2: approve, citing the rule and policy_rule_id; the claim doesn't matter."""
 
 
 def build_exception_request_prompt(

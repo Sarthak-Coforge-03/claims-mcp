@@ -28,8 +28,22 @@ from claims_mcp.mcp_server.prompts.replacement_request import build_replacement_
 
 mcp = MCPServer("it-equipment-requests")
 
-# Prompt arguments, with the descriptions the plan step reads when filling them from the request.
+# Tool and prompt arguments, with the descriptions the agent reads when filling them in.
 EmployeeIdArgument = Annotated[str, Field(description='The employee ID, e.g. "E001".')]
+RoleArgument = Annotated[
+    str,
+    Field(description='The role from get_employee_info: "standard", "manager" or "contractor".'),
+]
+RequestArgument = Annotated[
+    str, Field(description='What was asked for, in a few words, e.g. "3 monitors".')
+]
+EscalationReasonArgument = Annotated[
+    str,
+    Field(
+        description="Why a human must decide: the rule ID first, then the facts behind it, "
+        'e.g. "ESC-4: hired 2026-10-01, under 90 days".'
+    ),
+]
 ItemArgument = Annotated[
     str,
     Field(
@@ -43,17 +57,22 @@ QuantityArgument = Annotated[
 ]
 
 
-@mcp.tool()
-def get_employee_info(employee_id: str) -> EmployeeInfo:
+@mcp.tool(
+    description=(
+        "Use first for every request, to find who is asking. Returns name, role (standard, "
+        "manager or contractor), hire_date and equipment on file (item and issued_date). "
+        "Check these yourself: a contractor is ESC-3, and a hire_date under 90 days ago is ESC-4; "
+        "no other tool flags them. An error means the employee ID is unknown: escalate with ESC-1."
+    )
+)
+def get_employee_info(employee_id: EmployeeIdArgument) -> EmployeeInfo:
     """Look up an employee's role, hire date and equipment on file by their employee ID.
-
-    Call this first for any equipment request: the role decides the policy that applies.
 
     Args:
         employee_id: The employee's ID, e.g. "E001".
 
     Returns:
-        The employee's ID, name, role, hire date and equipment list (item and issued date).
+        The employee's ID, name, role, hire_date and equipment list (item and issued_date).
 
     Raises:
         ToolError: If no employee has that ID; the agent receives this as an error result.
@@ -64,17 +83,24 @@ def get_employee_info(employee_id: str) -> EmployeeInfo:
     return employee
 
 
-@mcp.tool()
-def get_policy_limits(role: str) -> RolePolicy:
+@mcp.tool(
+    description=(
+        "Use to see a role's whole entitlement list: each item it may hold, max_held (how many "
+        "at once), refresh_interval_months (how often the newest may be replaced) and "
+        "policy_rule_id (the policy row to cite). Not needed to decide one item; "
+        "check_request_eligibility does that. Use it for DEN-2, calling it for the other roles "
+        "to name the role an item is limited to. An empty list means the role has no "
+        "entitlements (contractors). An error means the role doesn't exist."
+    )
+)
+def get_policy_limits(role: RoleArgument) -> RolePolicy:
     """List the items a role may hold, how many at once, and how often each can be replaced.
-
-    Call this after get_employee_info, with the employee's role, before judging a request.
 
     Args:
         role: The employee's role, e.g. "standard", "manager" or "contractor".
 
     Returns:
-        The role and its item policies (item, max_held, refresh_interval_months);
+        The role and its item policies (policy_rule_id, item, max_held, refresh_interval_months);
         an empty list means the role has no entitlements.
 
     Raises:
@@ -86,18 +112,30 @@ def get_policy_limits(role: str) -> RolePolicy:
     return role_policy
 
 
-@mcp.tool()
-def check_request_eligibility(employee_id: str, item: str) -> EligibilityResult:
+@mcp.tool(
+    description=(
+        "Use after get_employee_info to check one item against the employee's role policy. "
+        "rule_id says what decided it: ELG-1 below the limit (approve), ELG-2 replacement due "
+        "(approve), ELG-3 too soon (deny with DEN-1 and state eligible_from_date, unless the "
+        "reason claims damage, loss, theft, a medical or accessibility need: ESC-5), DEN-2 role "
+        "not entitled (deny), ESC-2 not in the catalog (escalate). Also returns held_count, "
+        "max_held (compare with the requested quantity: above it is ESC-6), "
+        "refresh_interval_months, newest_issued_date and policy_rule_id (cite it when "
+        "approving). It does not check contractor or probation. An error means the employee ID "
+        "is unknown: escalate with ESC-1."
+    )
+)
+def check_request_eligibility(
+    employee_id: EmployeeIdArgument, item: ItemArgument
+) -> EligibilityResult:
     """Check whether an employee may get an item now under their role's policy, and why.
-
-    Call this after get_employee_info; cite the returned rule_id in the decision.
 
     Args:
         employee_id: The employee's ID, e.g. "E001".
         item: The requested item, e.g. "laptop" (anything outside the catalog gives ESC-2).
 
     Returns:
-        is_eligible, rule_id (ELG-1/2/3, DEN-2 or ESC-2), held_count, max_held,
+        is_eligible, rule_id (ELG-1/2/3, DEN-2 or ESC-2), policy_rule_id, held_count, max_held,
         refresh_interval_months, newest_issued_date and eligible_from_date.
 
     Raises:
@@ -109,11 +147,19 @@ def check_request_eligibility(employee_id: str, item: str) -> EligibilityResult:
     return eligibility
 
 
-@mcp.tool()
-def flag_for_human_review(employee_id: str, request: str, reason: str) -> Escalation:
+@mcp.tool(
+    description=(
+        "Use to hand a request to a human instead of deciding it, whenever an ESC rule applies "
+        "or the case is unclear. Never guess: escalate. Call it once per request, then stop "
+        "calling tools. This saves a record (a side effect) and returns its escalation_id, "
+        "created_at and status; cite the escalation_id in the reply. An unknown employee ID is "
+        "still accepted (ESC-1). An error means request or reason was empty."
+    )
+)
+def flag_for_human_review(
+    employee_id: EmployeeIdArgument, request: RequestArgument, reason: EscalationReasonArgument
+) -> Escalation:
     """Escalate a request to a human reviewer instead of deciding it; saves an escalation record.
-
-    Call this whenever an escalation rule (ESC-1..ESC-6) applies; put the rule ID in reason.
 
     Args:
         employee_id: The requesting employee's ID (an unknown ID is still escalated, ESC-1).

@@ -1,93 +1,86 @@
-"""Tests for McpToolGateway: the host's tool access, over the real MCP protocol in-process.
+"""Tests for McpToolGateway: MCP tools become ToolSpecs, and calls become ToolResults.
 
-Client(mcp) talks to the real server object without HTTP. The fixture swaps only the employee
-service the tools read from, so the real get_employee_info tool runs against a custom E100.
+A test-only server with one known tool keeps these independent of the claims server's real tools
+(those are tested in tests/mcp_server/). Client runs the full MCP protocol in-process.
 """
 
 import json
-from datetime import date
 
 import pytest
 from mcp import Client
+from mcp.server import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
+from pydantic import BaseModel
 
-from claims_mcp.backend.models.employee_info import EmployeeInfo
-from claims_mcp.backend.services.employee_service import EmployeeService
 from claims_mcp.host.llm.models.tool_call import ToolCall
 from claims_mcp.host.tools.mcp_tool_gateway import McpToolGateway
-from claims_mcp.mcp_server import server
-from claims_mcp.mcp_server.server import mcp
-from fakes.in_memory_employee_repository import InMemoryEmployeeRepository
+
+KNOWN_EMPLOYEE_ID = "E001"
+
+test_server = MCPServer("tool-gateway-test")
 
 
-@pytest.fixture
-def in_memory_employee_service(monkeypatch):
-    """Make the server's tools use an in-memory service holding only E100 (standard, no items)."""
-    test_employee = EmployeeInfo(
-        employee_id="E100",
-        name="Test Person",
-        role="standard",
-        hire_date=date(2020, 6, 15),
-        equipment=[],
-    )
-    employee_service = EmployeeService(InMemoryEmployeeRepository([test_employee]))
-    monkeypatch.setattr(server, "get_employee_service", lambda: employee_service)
-    return employee_service
+class Badge(BaseModel):
+    """The test tool's structured result."""
+
+    employee_id: str
+    role: str
+
+
+@test_server.tool(description="Look up an employee's badge.")
+def get_badge(employee_id: str) -> Badge:
+    """Return E001's badge; any other ID is a tool error, like an unknown employee."""
+    if employee_id != KNOWN_EMPLOYEE_ID:
+        raise ToolError(f"No badge for {employee_id}")
+    return Badge(employee_id=employee_id, role="standard")
 
 
 @pytest.mark.anyio
-async def test_list_tool_specs_returns_every_server_tool_with_schema():
-    """The four server tools come back as ToolSpecs; each has an object-typed argument schema."""
-    async with Client(mcp) as client:
+async def test_list_tool_specs_maps_each_tool_to_name_description_and_schema():
+    """The server's one tool comes back as a ToolSpec with its description and argument schema."""
+    async with Client(test_server) as client:
         tool_specs = await McpToolGateway(client).list_tool_specs()
 
-    schema_type_by_tool_name = {
-        tool_spec.name: tool_spec.input_schema["type"] for tool_spec in tool_specs
-    }
-    assert schema_type_by_tool_name == {
-        "get_employee_info": "object",
-        "get_policy_limits": "object",
-        "check_request_eligibility": "object",
-        "flag_for_human_review": "object",
-    }
+    spec_summaries = [
+        {
+            "name": tool_spec.name,
+            "description": tool_spec.description,
+            "required": tool_spec.input_schema["required"],
+        }
+        for tool_spec in tool_specs
+    ]
+    assert spec_summaries == [
+        {
+            "name": "get_badge",
+            "description": "Look up an employee's badge.",
+            "required": ["employee_id"],
+        }
+    ]
 
 
 @pytest.mark.anyio
-async def test_call_tool_known_employee_returns_structured_content_as_json(
-    in_memory_employee_service,
-):
+async def test_call_tool_success_returns_structured_content_as_json():
     """A successful call returns the tool's structured content as JSON text, paired by call id."""
-    tool_call = ToolCall(id="toolu_1", name="get_employee_info", arguments={"employee_id": "E100"})
+    tool_call = ToolCall(id="toolu_1", name="get_badge", arguments={"employee_id": "E001"})
 
-    async with Client(mcp) as client:
+    async with Client(test_server) as client:
         tool_result = await McpToolGateway(client).call_tool(tool_call)
 
-    # The chain behind this value: the real tool returns the fixture's EmployeeInfo; MCP
-    # serialises it into structured_content (dates become ISO strings); the gateway json.dumps
-    # that dict for the model. json.loads undoes the last step, so key order and spacing don't
-    # matter; the fields must match the fixture's E100.
-    assert json.loads(tool_result.content) == {
-        "employee_id": "E100",
-        "name": "Test Person",
-        "role": "standard",
-        "hire_date": "2020-06-15",
-        "equipment": [],
-    }
+    assert json.loads(tool_result.content) == {"employee_id": "E001", "role": "standard"}
     assert tool_result.tool_call_id == "toolu_1"
     assert tool_result.is_error is False
 
 
 @pytest.mark.anyio
-async def test_call_tool_unknown_employee_returns_error_result(in_memory_employee_service):
-    """A tool error (unknown E999) comes back as a ToolResult with is_error True, not an exception.
+async def test_call_tool_tool_error_returns_error_result_with_message():
+    """A ToolError comes back as a ToolResult with is_error True and the error text, no raise.
 
     The error has no structured content, so the gateway passes on the text message instead.
     """
-    tool_call = ToolCall(id="toolu_2", name="get_employee_info", arguments={"employee_id": "E999"})
+    tool_call = ToolCall(id="toolu_2", name="get_badge", arguments={"employee_id": "E999"})
 
-    async with Client(mcp) as client:
+    async with Client(test_server) as client:
         tool_result = await McpToolGateway(client).call_tool(tool_call)
 
     assert tool_result.is_error is True
-    assert tool_result.content == (
-        "Error executing tool get_employee_info: No employee with ID E999"
-    )
+    assert tool_result.content == "Error executing tool get_badge: No badge for E999"

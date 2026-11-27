@@ -9,13 +9,14 @@ from claims_mcp.host.state.agent_stop_reason import AgentStopReason
 from claims_mcp.host.state.plan import Plan
 from claims_mcp.host.state.react_phase import ReactPhase
 from claims_mcp.host.state.react_step import ReActStep
+from claims_mcp.host.state.reflection import Reflection
 from claims_mcp.host.state.request_decision import RequestDecision
 
 
 class AgentState(BaseModel):
     """Inputs, progress and outcome of one run; each phase reads a view of it and writes back.
 
-    The plan node writes plan before the loop. Reflection fields will join here, not elsewhere.
+    The plan node writes plan before the loop; reflection is written after it, once.
     """
 
     request: str
@@ -26,6 +27,7 @@ class AgentState(BaseModel):
     steps: list[ReActStep] = []
     next_phase: ReactPhase = ReactPhase.THINK
     request_decision: RequestDecision | None = None
+    reflection: Reflection | None = None
     stop_reason: AgentStopReason | None = None
 
     @property

@@ -12,7 +12,9 @@ request. Otherwise write 3 to 6 bullets, in order, naming the tool calls to make
 result leads to approve, deny or escalate:
 - Start with get_employee_info. Escalate if it fails (ESC-1), if the role is contractor \
 (ESC-3), or if hire_date is less than 90 days before today (ESC-4).
-- Use only the tools listed, and say which result each later step depends on.
+- Use only the tools listed, with only the parameters each one lists (quantity, for example, \
+is compared with max_held, not passed to a tool), and say which result each later step \
+depends on.
 - When no rule or tool can settle the request, the plan is to escalate with \
 flag_for_human_review under ESC-7 (no rule covers the request).
 

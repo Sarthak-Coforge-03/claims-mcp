@@ -57,4 +57,4 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-# fail_under = 80   # turn on once the four tools and their tests exist
+fail_under = 80   # turn on once the four tools and their tests exist

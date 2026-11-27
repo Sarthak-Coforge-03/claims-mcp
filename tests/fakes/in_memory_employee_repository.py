@@ -1,7 +1,7 @@
 """InMemoryEmployeeRepository: serves employees from a list in memory (tests and quick dev runs)."""
 
 from claims_mcp.backend.models.employee_info import EmployeeInfo
-from claims_mcp.backend.repositories.employee_repository_base import EmployeeRepositoryBase
+from claims_mcp.backend.repositories.base.employee_repository_base import EmployeeRepositoryBase
 
 
 class InMemoryEmployeeRepository(EmployeeRepositoryBase):

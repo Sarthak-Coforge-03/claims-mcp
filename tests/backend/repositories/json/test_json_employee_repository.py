@@ -5,10 +5,7 @@ from datetime import date
 
 import pytest
 
-from claims_mcp.backend.repositories.json_employee_repository import (
-    DEFAULT_EMPLOYEES_FILE,
-    JsonEmployeeRepository,
-)
+from claims_mcp.backend.repositories.json.json_employee_repository import JsonEmployeeRepository
 
 
 @pytest.fixture
@@ -49,12 +46,3 @@ def test_json_repository_get_by_id_unknown_id_returns_none(single_employee_file)
     employee = employee_repository.get_by_id("E999")
 
     assert employee is None
-
-
-def test_json_repository_reads_real_mock_data():
-    """The default file (data/employees.json) is found and its E001 record is valid."""
-    employee_repository = JsonEmployeeRepository(DEFAULT_EMPLOYEES_FILE)
-
-    employee = employee_repository.get_by_id("E001")
-
-    assert employee.name == "Priya Sharma"

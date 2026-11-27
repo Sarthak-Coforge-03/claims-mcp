@@ -1,0 +1,29 @@
+{
+  "role_policies": [
+    {
+      "role": "standard",
+      "item_policies": [
+        { "item": "laptop", "max_held": 1, "refresh_interval_months": 48 },
+        { "item": "monitor", "max_held": 1, "refresh_interval_months": 36 },
+        { "item": "docking_station", "max_held": 1, "refresh_interval_months": 48 },
+        { "item": "headset", "max_held": 1, "refresh_interval_months": 24 },
+        { "item": "keyboard", "max_held": 1, "refresh_interval_months": 24 }
+      ]
+    },
+    {
+      "role": "manager",
+      "item_policies": [
+        { "item": "laptop", "max_held": 1, "refresh_interval_months": 24 },
+        { "item": "monitor", "max_held": 2, "refresh_interval_months": 36 },
+        { "item": "docking_station", "max_held": 1, "refresh_interval_months": 48 },
+        { "item": "headset", "max_held": 1, "refresh_interval_months": 24 },
+        { "item": "keyboard", "max_held": 1, "refresh_interval_months": 24 },
+        { "item": "phone", "max_held": 1, "refresh_interval_months": 24 }
+      ]
+    },
+    {
+      "role": "contractor",
+      "item_policies": []
+    }
+  ]
+}

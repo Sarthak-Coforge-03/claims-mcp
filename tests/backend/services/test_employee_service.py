@@ -4,10 +4,8 @@ from datetime import date
 
 from claims_mcp.backend.models.employee_info import EmployeeInfo
 from claims_mcp.backend.models.equipment_item import EquipmentItem
-from claims_mcp.backend.repositories.in_memory_employee_repository import (
-    InMemoryEmployeeRepository,
-)
 from claims_mcp.backend.services.employee_service import EmployeeService
+from fakes.in_memory_employee_repository import InMemoryEmployeeRepository
 
 
 def build_test_employee() -> EmployeeInfo:

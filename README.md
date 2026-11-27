@@ -66,6 +66,18 @@ uv sync              # create .venv and install everything
 uv run pytest        # tests + coverage
 ```
 
+## Configuration
+
+Settings are read from environment variables, or from a `.env` file in the repo root, by `src/claims_mcp/settings.py` (pydantic-settings). Every variable is optional. Copy [`.env.example`](.env.example) to `.env` to change them.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `CLAIMS_MCP_EMPLOYEES_FILE` | `data/employees.json` | Employee records read by the backend |
+| `CLAIMS_MCP_POLICIES_FILE` | `data/policies.json` | Role policies (what each role may hold, how often) |
+| `CLAIMS_MCP_ESCALATIONS_FILE` | `data/escalations.json` | Escalations saved by `flag_for_human_review` (created on first use, gitignored) |
+
+Paths are relative to the working directory: the repo root on the host, `/app` in Docker.
+
 ## Tests and coverage
 
 - Tests live in `tests/` and run with pytest. Coverage (line and branch, via pytest-cov) is printed on every run. It is configured in `pyproject.toml`.
@@ -86,12 +98,13 @@ One-time setup for the Claude review: install the Claude GitHub App and add an `
 
 ```
 src/claims_mcp/
-  backend/          business domain, no MCP: models/, repositories/ (JSON now, ORM later), services/
+  settings.py       configuration from CLAIMS_MCP_* environment variables
+  backend/          business domain, no MCP: models/, repositories/ (base/ + json/; SQL optional later), services/
   mcp_server/       MCP server exposing backend services as tools
   client/           MCP client code; smoke check: uv run python -m claims_mcp.client.smoke_client
   agent/            (coming) ReAct agent; talks to the backend only through MCP
-data/               temporary mock data (employees.json)
-tests/              unit tests, mirroring src/ (tests/backend/...)
+data/               mock data (employees.json, policies.json)
+tests/              unit tests, mirroring src/ (tests/backend/...); test doubles in tests/fakes/
 Dockerfile          dev image (multi-stage: base → dev)
 compose.yaml        dev container definition
 .github/workflows/  CI (tests) and Claude PR review

@@ -10,6 +10,8 @@ requires-python = ">=3.12"
 dependencies = [
     "mcp[cli]>=2.3.0",
     "pydantic>=2.14.4",
+    "pydantic-settings>=2.16.3",
+    "python-dateutil>=4.0.0",
 ]
 
 [project.scripts]
@@ -39,10 +41,13 @@ select = ["E", "W", "F", "I", "B", "UP"]
 # Always sort our own package into the first-party import group. Without this, ruff guesses
 # from what exists on disk, so a test written before its module (TDD) gets its imports
 # grouped as third-party and then flagged once the module exists.
-known-first-party = ["claims_mcp"]
+# "fakes" is the tests/fakes package of test doubles (importable via pytest's pythonpath below).
+known-first-party = ["claims_mcp", "fakes"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Put tests/ on the import path so tests can `import fakes...` (test doubles kept out of src/).
+pythonpath = ["tests"]
 addopts = "--cov --cov-report=term-missing"
 
 [tool.coverage.run]
@@ -52,4 +57,4 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-# fail_under = 80   # turn on once the four tools and their tests exist
+fail_under = 80   # turn on once the four tools and their tests exist

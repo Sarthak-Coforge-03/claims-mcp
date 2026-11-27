@@ -224,3 +224,6 @@ __marimo__/
 CLAUDE.local.md
 PLAN.local.md
 .vscode/
+
+# Runtime output: escalations written by flag_for_human_review (never commit)
+data/escalations.json

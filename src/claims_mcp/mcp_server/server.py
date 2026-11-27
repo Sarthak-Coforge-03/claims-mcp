@@ -6,13 +6,16 @@ Run over stdio with: python -m claims_mcp.mcp_server.server
 
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from pydantic import ValidationError
 
 from claims_mcp.backend.models.eligibility_result import EligibilityResult
 from claims_mcp.backend.models.employee_info import EmployeeInfo
+from claims_mcp.backend.models.escalation import Escalation
 from claims_mcp.backend.models.role_policy import RolePolicy
 from claims_mcp.backend.service_provider import (
     get_eligibility_service,
     get_employee_service,
+    get_escalation_service,
     get_policy_service,
 )
 
@@ -83,6 +86,31 @@ def check_request_eligibility(employee_id: str, item: str) -> EligibilityResult:
     if eligibility is None:
         raise ToolError(f"No employee with ID {employee_id}")
     return eligibility
+
+
+@mcp.tool()
+def flag_for_human_review(employee_id: str, request: str, reason: str) -> Escalation:
+    """Escalate a request to a human reviewer instead of deciding it; saves an escalation record.
+
+    Call this whenever an escalation rule (ESC-1..ESC-6) applies; put the rule ID in reason.
+
+    Args:
+        employee_id: The requesting employee's ID (an unknown ID is still escalated, ESC-1).
+        request: What was asked for, e.g. "monitor".
+        reason: Why a human must decide, starting with the rule ID, e.g. "ESC-4: in probation".
+
+    Returns:
+        The saved escalation: escalation_id, employee_id, request, reason, created_at, status.
+
+    Raises:
+        ToolError: If request or reason is empty; nothing is saved in that case.
+    """
+    try:
+        return get_escalation_service().flag_for_human_review(employee_id, request, reason)
+    except ValidationError as validation_error:
+        raise ToolError(
+            "Cannot escalate: request and reason must not be empty"
+        ) from validation_error
 
 
 if __name__ == "__main__":

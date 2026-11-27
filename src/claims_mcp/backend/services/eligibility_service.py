@@ -84,13 +84,14 @@ def build_unassessable_result(
         rule_id: EligibilityRule.ESC_2 (not in catalog) or EligibilityRule.DEN_2 (not entitled).
 
     Returns:
-        An EligibilityResult with is_eligible False and all policy fields set to None.
+        An EligibilityResult with is_eligible False and all policy fields (incl. POL ID) None.
     """
     return EligibilityResult(
         employee_id=employee.employee_id,
         item=item,
         is_eligible=False,
         rule_id=rule_id,
+        policy_rule_id=None,
         held_count=count_items_held(employee, item),
         max_held=None,
         refresh_interval_months=None,
@@ -121,6 +122,7 @@ def check_against_item_policy(
             item=item,
             is_eligible=True,
             rule_id=EligibilityRule.ELG_1,
+            policy_rule_id=item_policy.policy_rule_id,
             held_count=held_count,
             max_held=item_policy.max_held,
             refresh_interval_months=item_policy.refresh_interval_months,
@@ -137,6 +139,7 @@ def check_against_item_policy(
         item=item,
         is_eligible=replacement_is_due,
         rule_id=EligibilityRule.ELG_2 if replacement_is_due else EligibilityRule.ELG_3,
+        policy_rule_id=item_policy.policy_rule_id,
         held_count=held_count,
         max_held=item_policy.max_held,
         refresh_interval_months=item_policy.refresh_interval_months,

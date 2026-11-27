@@ -23,8 +23,18 @@ def in_memory_policy_service(monkeypatch):
     manager_policy = RolePolicy(
         role="manager",
         item_policies=[
-            ItemPolicy(item="laptop", max_held=1, refresh_interval_months=24),
-            ItemPolicy(item="phone", max_held=1, refresh_interval_months=24),
+            ItemPolicy(
+                policy_rule_id="POL-MGR-LAPTOP",
+                item="laptop",
+                max_held=1,
+                refresh_interval_months=24,
+            ),
+            ItemPolicy(
+                policy_rule_id="POL-MGR-PHONE",
+                item="phone",
+                max_held=1,
+                refresh_interval_months=24,
+            ),
         ],
     )
     contractor_policy = RolePolicy(role="contractor", item_policies=[])
@@ -48,7 +58,14 @@ async def test_get_policy_limits_tool_manager_includes_phone_policy(in_memory_po
 
     item_policies = result.structured_content["item_policies"]
     phone_policies = [policy for policy in item_policies if policy["item"] == "phone"]
-    assert phone_policies == [{"item": "phone", "max_held": 1, "refresh_interval_months": 24}]
+    assert phone_policies == [
+        {
+            "policy_rule_id": "POL-MGR-PHONE",
+            "item": "phone",
+            "max_held": 1,
+            "refresh_interval_months": 24,
+        }
+    ]
 
 
 @pytest.mark.anyio

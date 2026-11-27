@@ -18,13 +18,23 @@ def two_role_policies_file(tmp_path):
                     {
                         "role": "standard",
                         "item_policies": [
-                            {"item": "monitor", "max_held": 1, "refresh_interval_months": 36}
+                            {
+                                "policy_rule_id": "POL-STD-MONITOR",
+                                "item": "monitor",
+                                "max_held": 1,
+                                "refresh_interval_months": 36,
+                            }
                         ],
                     },
                     {
                         "role": "manager",
                         "item_policies": [
-                            {"item": "laptop", "max_held": 1, "refresh_interval_months": 24}
+                            {
+                                "policy_rule_id": "POL-MGR-LAPTOP",
+                                "item": "laptop",
+                                "max_held": 1,
+                                "refresh_interval_months": 24,
+                            }
                         ],
                     },
                 ]

@@ -17,6 +17,7 @@ class EligibilityResult(BaseModel):
     item: str
     is_eligible: bool
     rule_id: EligibilityRule
+    policy_rule_id: str | None  # the POL-* row applied (cited on approval), None if no policy
     held_count: int
     max_held: int | None
     refresh_interval_months: int | None

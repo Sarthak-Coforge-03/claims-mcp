@@ -35,7 +35,14 @@ def in_memory_eligibility_service(monkeypatch):
     )
     standard_policy = RolePolicy(
         role="standard",
-        item_policies=[ItemPolicy(item="laptop", max_held=1, refresh_interval_months=48)],
+        item_policies=[
+            ItemPolicy(
+                policy_rule_id="POL-STD-LAPTOP",
+                item="laptop",
+                max_held=1,
+                refresh_interval_months=48,
+            )
+        ],
     )
     eligibility_service = EligibilityService(
         EmployeeService(InMemoryEmployeeRepository([test_employee])),

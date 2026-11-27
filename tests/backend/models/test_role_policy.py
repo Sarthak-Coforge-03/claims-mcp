@@ -11,8 +11,18 @@ def build_standard_role_policy_record() -> dict:
     return {
         "role": "standard",
         "item_policies": [
-            {"item": "laptop", "max_held": 1, "refresh_interval_months": 48},
-            {"item": "monitor", "max_held": 1, "refresh_interval_months": 36},
+            {
+                "policy_rule_id": "POL-STD-LAPTOP",
+                "item": "laptop",
+                "max_held": 1,
+                "refresh_interval_months": 48,
+            },
+            {
+                "policy_rule_id": "POL-STD-MONITOR",
+                "item": "monitor",
+                "max_held": 1,
+                "refresh_interval_months": 36,
+            },
         ],
     }
 
@@ -30,7 +40,14 @@ def test_role_policy_zero_max_held_is_rejected():
     """An item policy with max_held=0 is invalid; "not entitled" means leaving the item out."""
     raw_role_policy = {
         "role": "standard",
-        "item_policies": [{"item": "laptop", "max_held": 0, "refresh_interval_months": 48}],
+        "item_policies": [
+            {
+                "policy_rule_id": "POL-STD-LAPTOP",
+                "item": "laptop",
+                "max_held": 0,
+                "refresh_interval_months": 48,
+            }
+        ],
     }
 
     with pytest.raises(ValidationError):

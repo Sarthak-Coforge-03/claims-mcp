@@ -13,10 +13,11 @@ dependencies = [
     "pydantic>=2.14.4",
     "pydantic-settings>=2.16.3",
     "python-dateutil>=4.0.0",
+    "questionary>=2.1.1",
 ]
 
 [project.scripts]
-claims-mcp = "claims_mcp:main"
+claims-mcp = "claims_mcp.host.agent.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.23,<0.13.0"]
@@ -54,6 +55,14 @@ addopts = "--cov --cov-report=term-missing"
 [tool.coverage.run]
 source = ["src/claims_mcp"]
 branch = true
+# Live entry points: each needs a running MCP server and/or real Claude, so no unit test runs
+# them. Their logic lives in tested modules (build_state, run_agent, the gateways, the nodes).
+omit = [
+    "src/claims_mcp/host/agent/cli.py",
+    "src/claims_mcp/host/agent/run_demo.py",
+    "src/claims_mcp/host/llm/llm_smoke.py",
+    "src/claims_mcp/host/gateways/smoke_client.py",
+]
 
 [tool.coverage.report]
 show_missing = true

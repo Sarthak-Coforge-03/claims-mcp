@@ -3,13 +3,14 @@
 from claims_mcp.host.react.views import render_action, render_plan
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.react_step import ReActStep
+from claims_mcp.host.state.reflection import Reflection
 from claims_mcp.host.state.request_decision import RequestDecision
 
 NO_DECISION = "No decision (step limit reached)"
 
 
 def print_trace(state: AgentState) -> None:
-    """Print the request, the plan and where it came from, every step numbered, then the outcome.
+    """Print the request, the plan, every step numbered, the reflection, then the final outcome.
 
     Args:
         state: The state run_react_loop returned.
@@ -23,10 +24,40 @@ def print_trace(state: AgentState) -> None:
         print(render_step_for_trace(step))
         print()
     print(f"Stop reason: {state.stop_reason}")
+    if state.reflection is not None:
+        print("--- Reflection ---")
+        print(render_reflection(state.reflection))
+        print()
     if state.request_decision is None:
         print(NO_DECISION)
     else:
         print(render_request_decision(state.request_decision))
+
+
+def render_reflection(reflection: Reflection) -> str:
+    """Return the code issues, the critique's answers and issues, and the revision if one ran.
+
+    Args:
+        reflection: The record CRITIQUE (and REVISE, if it ran) left in the state.
+
+    Returns:
+        Lines ending "Verdict: confirmed" or "Verdict: revised" plus the draft response.
+    """
+    critique = reflection.critique
+    lines = [
+        f"Code checks: {', '.join(reflection.code_issues) or 'none'}",
+        f"Addresses request: {critique.addresses_request}",
+        f"Follows policy: {critique.follows_policy}",
+        f"Avoids unconfirmed promises: {critique.avoids_unconfirmed_promises}",
+        f"Matches tool results: {critique.matches_tool_results}",
+    ]
+    lines.extend(f"Issue: {issue}" for issue in critique.issues)
+    if reflection.revised_decision is None:
+        lines.append("Verdict: confirmed (the draft is final)")
+    else:
+        lines.append("Verdict: revised (the revision below replaces the draft)")
+        lines.append(f"Draft response: {reflection.draft_decision.response}")
+    return "\n".join(lines)
 
 
 def render_request_decision(request_decision: RequestDecision) -> str:

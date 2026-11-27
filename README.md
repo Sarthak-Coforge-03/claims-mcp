@@ -2,7 +2,7 @@
 
 An internal **IT equipment request handler**. An MCP server exposes tools over mock employee and policy data. A ReAct agent then uses those tools to approve or deny equipment requests, or to escalate unclear ones to a human reviewer.
 
-> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent plans, then runs its ReAct loop end to end; the reflection step is not built yet.
+> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent plans, runs its ReAct loop, then reflects on its draft, end to end.
 
 ## Prerequisites
 
@@ -125,7 +125,18 @@ Then the ReAct loop:
 - **OBSERVE** (no tools) sees the call and its raw result, and states what the result establishes.
 
 ACT → OBSERVE → THINK is fixed by code. The run stops when THINK finishes, or after
-`CLAIMS_MCP_MAX_REACT_STEPS` cycles. The trace is printed from the finished state.
+`CLAIMS_MCP_MAX_REACT_STEPS` cycles.
+
+When THINK finished with a decision, **reflection** runs once on that draft:
+- **CRITIQUE** (structured output, no tools) sees the draft next to every tool call's raw result,
+  plus two code checks (an unknown rule ID; an escalation that was never filed). It answers: does
+  the draft address the request, follow the policy, avoid unconfirmed promises, and match the tool
+  results?
+- **REVISE** runs only if any answer is no: it rewrites the decision to fix each issue, using only
+  facts from the tool results. Otherwise the draft is final.
+
+Reflection's result is final; the run never loops back. The trace is printed from the finished
+state: the plan, each step, the reflection, then the final decision.
 
 It needs the Foundry settings in `.env` (see Configuration) and a running server:
 
@@ -162,7 +173,8 @@ src/claims_mcp/
   mcp_server/       MCP server exposing backend services as tools
   client/           MCP client code; smoke check: uv run python -m claims_mcp.client.smoke_client
   host/             the agent: llm/ adapter, tools/ + templates/ MCP gateways, state/, plan/ node,
-                    react/ nodes + loop, system_prompts/; talks to the backend only through MCP
+                    react/ nodes + loop, reflect/ critique + revise, system_prompts/; talks to
+                    the backend only through MCP
 data/               mock data (employees.json, policies.json)
 tests/              unit tests, mirroring src/ (tests/backend/...); test doubles in tests/fakes/
 Dockerfile          dev image (multi-stage: base → dev)

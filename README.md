@@ -78,6 +78,10 @@ Settings are read from environment variables, or from a `.env` file in the repo 
 | `CLAIMS_MCP_SERVER_HOST` | `127.0.0.1` | Interface the MCP server listens on (compose sets `0.0.0.0`) |
 | `CLAIMS_MCP_SERVER_PORT` | `8000` | Port the MCP server listens on |
 | `CLAIMS_MCP_SERVER_URL` | `http://localhost:8000/mcp` | Where clients connect (compose's `dev` uses `http://mcp_server:8000/mcp`) |
+| `CLAIMS_MCP_FOUNDRY_RESOURCE` | (none) | Azure Foundry resource hosting Claude; set in `.env` |
+| `CLAIMS_MCP_FOUNDRY_API_KEY` | (none) | API key for that resource; set in `.env` only |
+| `CLAIMS_MCP_MODEL_DEPLOYMENT` | `claude-opus-5-5-fast` | Foundry deployment the host agent calls |
+| `CLAIMS_MCP_MODEL_EFFORT` | `medium` | How much the model thinks (`low` … `max`) |
 
 Paths are relative to the working directory: the repo root on the host, `/app` in Docker.
 

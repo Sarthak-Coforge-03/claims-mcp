@@ -9,6 +9,31 @@ from claims_mcp.host.state.request_decision import RequestDecision
 NO_DECISION = "No decision (step limit reached)"
 
 
+def print_run(state: AgentState, show_trace: bool) -> None:
+    """Print a finished run: the full trace, or only the final decision (CLAIMS_MCP_SHOW_TRACE).
+
+    Args:
+        state: The state run_agent returned.
+        show_trace: True for the whole trace, False for just the decision.
+    """
+    if show_trace:
+        print_trace(state)
+    else:
+        print_result(state)
+
+
+def print_result(state: AgentState) -> None:
+    """Print only the final decision (outcome, rule, IDs, response), or why there is none.
+
+    Args:
+        state: The state run_agent returned.
+    """
+    if state.request_decision is None:
+        print(NO_DECISION)
+    else:
+        print(render_request_decision(state.request_decision))
+
+
 def print_trace(state: AgentState) -> None:
     """Print the request, the plan, every step numbered, the reflection, then the final outcome.
 
@@ -28,10 +53,7 @@ def print_trace(state: AgentState) -> None:
         print("--- Reflection ---")
         print(render_reflection(state.reflection))
         print()
-    if state.request_decision is None:
-        print(NO_DECISION)
-    else:
-        print(render_request_decision(state.request_decision))
+    print_result(state)
 
 
 def render_reflection(reflection: Reflection) -> str:

@@ -1,4 +1,4 @@
-"""Interactive CLI: ask who is asking and what they need, run the agent, show the full trace.
+"""Interactive CLI: ask who is asking and what they need, run the agent, print the run.
 
 Asks employee or contractor first: an employee then gives their ID (role and name come from
 the employee record), a contractor their name (they have no ID). Needs a running server. Run:
@@ -13,7 +13,7 @@ from mcp import Client
 
 from claims_mcp.host.agent.build_state import build_state
 from claims_mcp.host.agent.run_agent import run_agent
-from claims_mcp.host.agent.trace_printer import print_trace
+from claims_mcp.host.agent.trace_printer import print_run
 from claims_mcp.host.gateways.templates.mcp_template_gateway import McpTemplateGateway
 from claims_mcp.host.gateways.tools.mcp_tool_gateway import McpToolGateway
 from claims_mcp.host.llm.adapter_provider import create_chat_model_adapter
@@ -44,7 +44,7 @@ async def run_cli() -> None:
             print("\nRunning the agent…\n")
             state = build_state(requester_type, requester, request, tool_specs, settings)
             final_state = await run_agent(state, adapter, tool_gateway, template_gateway)
-            print_trace(final_state)
+            print_run(final_state, settings.show_trace)
             print()
             is_running = bool(await ask(questionary.confirm("Handle another request?")))
     print("Bye.")

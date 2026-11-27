@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     # Most THINK → ACT → OBSERVE cycles per run; the longest scenario (lookup, eligibility,
     # escalation, then the finishing THINK) fits in 5. ge=1 rejects 0 when settings load.
     max_react_steps: int = Field(default=5, ge=1)
+    # True prints the whole run (plan, steps, reflection); False prints only the final decision.
+    # The state keeps the full record either way.
+    show_trace: bool = True
 
 
 @lru_cache

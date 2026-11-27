@@ -14,7 +14,7 @@ from mcp import Client
 
 from claims_mcp.host.agent.build_state import build_state
 from claims_mcp.host.agent.run_agent import run_agent
-from claims_mcp.host.agent.trace_printer import print_trace
+from claims_mcp.host.agent.trace_printer import print_run
 from claims_mcp.host.gateways.templates.mcp_template_gateway import McpTemplateGateway
 from claims_mcp.host.gateways.tools.mcp_tool_gateway import McpToolGateway
 from claims_mcp.host.llm.adapter_provider import create_chat_model_adapter
@@ -30,7 +30,7 @@ DEMO_ARGUMENT_COUNT = 3
 
 
 async def run_demo(requester_type: RequesterType, requester: str, request: str) -> None:
-    """Connect to the server, run the agent on one request, and print the finished trace.
+    """Connect to the server, run the agent on one request, and print the run.
 
     Args:
         requester_type: Employee or contractor.
@@ -45,7 +45,7 @@ async def run_demo(requester_type: RequesterType, requester: str, request: str) 
         tool_specs = await tool_gateway.list_tool_specs()
         state = build_state(requester_type, requester, request, tool_specs, settings)
         final_state = await run_agent(state, adapter, tool_gateway, template_gateway)
-    print_trace(final_state)
+    print_run(final_state, settings.show_trace)
 
 
 def main() -> None:

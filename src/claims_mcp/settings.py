@@ -11,7 +11,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Configuration values for the backend, loaded once per process via get_settings()."""
+    """Configuration values for the backend and MCP server, loaded once via get_settings()."""
 
     # extra="ignore": other keys in .env (e.g. ANTHROPIC_API_KEY for the host) don't break loading.
     model_config = SettingsConfigDict(env_prefix="CLAIMS_MCP_", env_file=".env", extra="ignore")
@@ -20,6 +20,13 @@ class Settings(BaseSettings):
     policies_file: Path = Path("data/policies.json")
     # Written at runtime by flag_for_human_review; gitignored, created on the first escalation.
     escalations_file: Path = Path("data/escalations.json")
+
+    # MCP server over Streamable HTTP. 127.0.0.1 keeps it local and lets the SDK switch on its
+    # DNS-rebinding protection; Docker sets 0.0.0.0 so other containers can reach it.
+    server_host: str = "127.0.0.1"
+    server_port: int = 8000
+    # Where clients (smoke client, host agent) connect; /mcp is the SDK's default endpoint.
+    server_url: str = "http://localhost:8000/mcp"
 
 
 @lru_cache

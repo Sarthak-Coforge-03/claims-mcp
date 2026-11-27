@@ -2,7 +2,7 @@
 
 An internal **IT equipment request handler**. An MCP server exposes tools over mock employee and policy data. A ReAct agent then uses those tools to approve or deny equipment requests, or to escalate unclear ones to a human reviewer.
 
-> Status: early setup. The project, the test tooling and the Docker dev environment are in place. The MCP server and the agent are not built yet.
+> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent is not built yet.
 
 ## Prerequisites
 
@@ -75,8 +75,30 @@ Settings are read from environment variables, or from a `.env` file in the repo 
 | `CLAIMS_MCP_EMPLOYEES_FILE` | `data/employees.json` | Employee records read by the backend |
 | `CLAIMS_MCP_POLICIES_FILE` | `data/policies.json` | Role policies (what each role may hold, how often) |
 | `CLAIMS_MCP_ESCALATIONS_FILE` | `data/escalations.json` | Escalations saved by `flag_for_human_review` (created on first use, gitignored) |
+| `CLAIMS_MCP_SERVER_HOST` | `127.0.0.1` | Interface the MCP server listens on (compose sets `0.0.0.0`) |
+| `CLAIMS_MCP_SERVER_PORT` | `8000` | Port the MCP server listens on |
+| `CLAIMS_MCP_SERVER_URL` | `http://localhost:8000/mcp` | Where clients connect (compose's `dev` uses `http://mcp_server:8000/mcp`) |
 
 Paths are relative to the working directory: the repo root on the host, `/app` in Docker.
+
+## Running the MCP server
+
+The server speaks MCP over Streamable HTTP at `http://localhost:8000/mcp` and runs until stopped.
+The smoke client connects to it, lists the tools and calls `get_employee_info` once.
+
+```bash
+# Docker
+docker compose up -d mcp_server     # start in the background; `docker compose ps` shows "healthy"
+docker compose run --rm dev uv run python -m claims_mcp.client.smoke_client
+docker compose down                 # stop it
+
+# Host (two terminals)
+uv run python -m claims_mcp.mcp_server.server
+uv run python -m claims_mcp.client.smoke_client
+```
+
+To inspect it by hand, run `npx @modelcontextprotocol/inspector`. Pick the **Streamable HTTP**
+transport, enter the URL `http://localhost:8000/mcp`, then use the Tools and Prompts tabs.
 
 ## Tests and coverage
 

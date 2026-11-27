@@ -2,7 +2,7 @@
 
 Tools only translate between MCP and the backend; all business logic lives in claims_mcp.backend.
 Prompts return templates for known request scenarios (built in mcp_server/prompts/).
-Run over stdio with: python -m claims_mcp.mcp_server.server
+Run over Streamable HTTP with: python -m claims_mcp.mcp_server.server (endpoint /mcp).
 """
 
 from datetime import date
@@ -11,6 +11,8 @@ from typing import Annotated
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import Field, ValidationError
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
 
 from claims_mcp.backend.models.eligibility_result import EligibilityResult
 from claims_mcp.backend.models.employee_info import EmployeeInfo
@@ -25,6 +27,7 @@ from claims_mcp.backend.service_provider import (
 from claims_mcp.mcp_server.prompts.exception_request import build_exception_request_prompt
 from claims_mcp.mcp_server.prompts.new_item_request import build_new_item_request_prompt
 from claims_mcp.mcp_server.prompts.replacement_request import build_replacement_request_prompt
+from claims_mcp.settings import get_settings
 
 mcp = MCPServer("it-equipment-requests")
 
@@ -264,5 +267,19 @@ def exception_request(
     return build_exception_request_prompt(employee_id, item, reason, quantity, date.today())
 
 
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request: Request) -> PlainTextResponse:
+    """Answer "ok" so Docker's healthcheck can tell the server is up (not part of MCP).
+
+    Args:
+        request: The incoming HTTP request; unused.
+
+    Returns:
+        A 200 plain-text response with the body "ok".
+    """
+    return PlainTextResponse("ok")
+
+
 if __name__ == "__main__":
-    mcp.run()
+    settings = get_settings()
+    mcp.run(transport="streamable-http", host=settings.server_host, port=settings.server_port)

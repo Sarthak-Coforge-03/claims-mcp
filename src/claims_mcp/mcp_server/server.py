@@ -47,11 +47,14 @@ EscalationReasonArgument = Annotated[
         'request), then the facts behind it, e.g. "ESC-4: hired 2026-10-01, under 90 days".'
     ),
 ]
+# The catalog list mirrors docs/requirements.md section 3; keep the two in sync.
 ItemArgument = Annotated[
     str,
     Field(
-        description='The catalog item, e.g. "monitor" or "docking_station"; '
-        "otherwise the employee's own words for it."
+        description="The catalog item the request is for: laptop, monitor, docking_station, "
+        "headset, keyboard or phone. Leave out brand, model, size and other details, e.g. "
+        '"a new Dell 27-inch monitor" is "monitor". Use the employee\'s own words only when '
+        'the request matches no catalog item (e.g. "standing desk"), so ESC-2 can be reported.'
     ),
 ]
 ReasonArgument = Annotated[str, Field(description="The employee's reason, quoted as given.")]
@@ -121,7 +124,8 @@ def get_policy_limits(role: RoleArgument) -> RolePolicy:
         "rule_id says what decided it: ELG-1 below the limit (approve), ELG-2 replacement due "
         "(approve), ELG-3 too soon (deny with DEN-1 and state eligible_from_date, unless the "
         "reason claims damage, loss, theft, a medical or accessibility need: ESC-5), DEN-2 role "
-        "not entitled (deny), ESC-2 not in the catalog (escalate). Also returns held_count, "
+        "not entitled (deny), ESC-2 not in the catalog (escalate; pass the bare catalog item, "
+        "since brand or size details are not part of it). Also returns held_count, "
         "max_held (compare with the requested quantity: above it is ESC-6), "
         "refresh_interval_months, newest_issued_date and policy_rule_id (cite it when "
         "approving). It does not check contractor or probation. An error means the employee ID "

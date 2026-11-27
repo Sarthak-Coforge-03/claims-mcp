@@ -1,8 +1,9 @@
 # Three services on one image (claims-mcp-dev, the Dockerfile's dev stage):
 #   dev         tests and one-off commands: `docker compose run --rm dev <command>`
-#   mcp_server  the MCP server: `docker compose up -d mcp_server`
-#   cli         the whole app (server + interactive CLI): `docker compose run --rm cli`
-# Stop everything with `docker compose down` (add -v to also reset the data volume).
+#   mcp_server  the MCP server: `docker compose up -d --build mcp_server`
+#   cli         the whole app (server + interactive CLI): `docker compose run --build --rm cli`
+# Only dev mounts the repo; mcp_server and cli run the code baked into the image, so they
+# need a rebuild (--build) to pick up edits. Stop with `docker compose down` (-v: reset data).
 
 services:
   dev:
@@ -11,7 +12,8 @@ services:
       target: dev
     image: claims-mcp-dev
     volumes:
-      # The repo at /app: code edits show up without a rebuild (the venv is in /opt/venv).
+      # The repo at /app, so the test hook sees edits and ruff fixes land on the host
+      # without a rebuild (the venv is in /opt/venv, outside the mount).
       - .:/app
     environment:
       # Service name, not localhost. No depends_on: test runs shouldn't start the server.
@@ -27,9 +29,8 @@ services:
       target: dev
     image: claims-mcp-dev
     volumes:
-      - .:/app
       # Over data/: persists until `down -v`; seeded once from the image's two JSON files.
-      # Host edits to data/*.json don't reach it; rebuild and `down -v` to re-seed.
+      # Edits to data/*.json reach it only after a rebuild and `down -v`.
       - claims_data:/app/data
     command: ["uv", "run", "python", "-m", "claims_mcp.mcp_server.server"]
     environment:
@@ -56,8 +57,6 @@ services:
       context: .
       target: dev
     image: claims-mcp-dev
-    volumes:
-      - .:/app
     # Kept out of a plain `docker compose up` (it needs a terminal); `run cli` enables it.
     profiles: ["cli"]
     command: ["uv", "run", "claims-mcp"]

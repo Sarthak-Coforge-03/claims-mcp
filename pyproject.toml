@@ -39,10 +39,13 @@ select = ["E", "W", "F", "I", "B", "UP"]
 # Always sort our own package into the first-party import group. Without this, ruff guesses
 # from what exists on disk, so a test written before its module (TDD) gets its imports
 # grouped as third-party and then flagged once the module exists.
-known-first-party = ["claims_mcp"]
+# "fakes" is the tests/fakes package of test doubles (importable via pytest's pythonpath below).
+known-first-party = ["claims_mcp", "fakes"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Put tests/ on the import path so tests can `import fakes...` (test doubles kept out of src/).
+pythonpath = ["tests"]
 addopts = "--cov --cov-report=term-missing"
 
 [tool.coverage.run]

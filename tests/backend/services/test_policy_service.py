@@ -2,8 +2,8 @@
 
 from claims_mcp.backend.models.item_policy import ItemPolicy
 from claims_mcp.backend.models.role_policy import RolePolicy
-from claims_mcp.backend.repositories.in_memory_policy_repository import InMemoryPolicyRepository
 from claims_mcp.backend.services.policy_service import PolicyService
+from fakes.in_memory_policy_repository import InMemoryPolicyRepository
 
 
 def build_manager_role_policy() -> RolePolicy:

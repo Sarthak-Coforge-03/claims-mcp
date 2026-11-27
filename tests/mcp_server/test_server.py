@@ -11,12 +11,10 @@ from mcp import Client
 
 from claims_mcp.backend.models.employee_info import EmployeeInfo
 from claims_mcp.backend.models.equipment_item import EquipmentItem
-from claims_mcp.backend.repositories.in_memory_employee_repository import (
-    InMemoryEmployeeRepository,
-)
 from claims_mcp.backend.services.employee_service import EmployeeService
 from claims_mcp.mcp_server import server
 from claims_mcp.mcp_server.server import mcp
+from fakes.in_memory_employee_repository import InMemoryEmployeeRepository
 
 
 @pytest.fixture

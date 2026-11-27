@@ -1,6 +1,6 @@
 """Prints a finished run's Thought / Action / Observation trace, read from the AgentState alone."""
 
-from claims_mcp.host.react.views import render_action
+from claims_mcp.host.react.views import render_action, render_plan
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.react_step import ReActStep
 
@@ -8,12 +8,15 @@ NO_ANSWER = "no answer (step limit reached)"
 
 
 def print_trace(state: AgentState) -> None:
-    """Print every step, numbered, then the outcome.
+    """Print the request, the plan and where it came from, every step numbered, then the outcome.
 
     Args:
         state: The state run_react_loop returned.
     """
     print(f"Request: {state.request}\n")
+    if state.plan is not None:
+        print(render_plan(state.plan))
+        print()
     for step_number, step in enumerate(state.steps, start=1):
         print(f"--- Step {step_number} ---")
         print(render_step_for_trace(step))

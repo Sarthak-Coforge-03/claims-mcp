@@ -2,7 +2,7 @@
 
 An internal **IT equipment request handler**. An MCP server exposes tools over mock employee and policy data. A ReAct agent then uses those tools to approve or deny equipment requests, or to escalate unclear ones to a human reviewer.
 
-> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent's ReAct loop runs end to end; its plan and reflection steps are not built yet.
+> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent plans, then runs its ReAct loop end to end; the reflection step is not built yet.
 
 ## Prerequisites
 
@@ -108,10 +108,18 @@ transport, enter the URL `http://localhost:8000/mcp`, then use the Tools and Pro
 ## Running the agent
 
 The host agent (`src/claims_mcp/host/`) keeps one shared `AgentState` for the whole run. Each
-phase is its own model call, with its own system prompt, and sees only a view of that state:
-- **THINK** (structured output, no tools) sees the request, today's date, the tool catalog and
-  every earlier step's observation. It continues with one next action, or finishes with the
-  final answer. It is the only phase that chooses where the run goes.
+phase is its own model call, with its own system prompt, and sees only a view of that state.
+
+First, once, the **plan** node writes `state.plan`:
+- **SELECT** (structured output) picks the server's scenario template (MCP prompt) whose
+  description fits the request, and pulls out the employee ID, item, reason and quantity. If the
+  template exists and the ID and item are there, the filled-in template is the plan.
+- Otherwise **WRITE** drafts a short plan from the tool descriptions.
+
+Then the ReAct loop:
+- **THINK** (structured output, no tools) sees the request, today's date, the tool catalog, the
+  plan and every earlier step's observation. It continues with one next action, or finishes with
+  the final answer. It is the only phase that chooses where the run goes.
 - **ACT** (with the tools) sees the request and THINK's next action, and makes that one tool
   call. A reply without exactly one call is recorded as an action error; the run continues.
 - **OBSERVE** (no tools) sees the call and its raw result, and states what the result establishes.
@@ -124,7 +132,8 @@ It needs the Foundry settings in `.env` (see Configuration) and a running server
 ```bash
 uv run python -m claims_mcp.host.llm_smoke     # one model call, no tools: checks the LLM wiring
 docker compose up -d --wait mcp_server
-uv run python -m claims_mcp.host.run_demo      # scenario 1, prints Thought / Action / Observation
+uv run python -m claims_mcp.host.run_demo      # scenario 1: prints the plan, then each step
+uv run python -m claims_mcp.host.run_demo "Employee E004: I need three monitors."   # any request
 docker compose down
 ```
 
@@ -152,8 +161,8 @@ src/claims_mcp/
   backend/          business domain, no MCP: models/, repositories/ (base/ + json/; SQL optional later), services/
   mcp_server/       MCP server exposing backend services as tools
   client/           MCP client code; smoke check: uv run python -m claims_mcp.client.smoke_client
-  host/             ReAct agent: llm/ adapter, tools/ MCP gateway, state/, react/ nodes + loop,
-                    system_prompts/; talks to the backend only through MCP
+  host/             the agent: llm/ adapter, tools/ + templates/ MCP gateways, state/, plan/ node,
+                    react/ nodes + loop, system_prompts/; talks to the backend only through MCP
 data/               mock data (employees.json, policies.json)
 tests/              unit tests, mirroring src/ (tests/backend/...); test doubles in tests/fakes/
 Dockerfile          dev image (multi-stage: base → dev)

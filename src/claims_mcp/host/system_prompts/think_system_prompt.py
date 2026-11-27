@@ -24,4 +24,6 @@ less than 90 days before today, escalate (ESC-4).
 - Decide only from facts in the observations. When the observations don't settle the request, \
 or a tool failed, escalate rather than guess.
 - To escalate, the next action is flag_for_human_review, with the rule ID first in the reason.
+- If no rule covers the request (e.g. shipping, a return, a repair), or the observations fit no \
+rule, escalate with ESC-7. Never escalate or finish without a rule ID.
 - If a step shows an action error, the action did not run; choose again."""

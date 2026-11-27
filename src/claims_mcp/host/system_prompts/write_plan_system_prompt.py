@@ -10,6 +10,7 @@ order, naming the tool calls to make and what result leads to approve, deny or e
 - Start with get_employee_info. Escalate if it fails (ESC-1), if the role is contractor \
 (ESC-3), or if hire_date is less than 90 days before today (ESC-4).
 - Use only the tools listed, and say which result each later step depends on.
-- When the tools can't settle the request, the plan is to escalate with flag_for_human_review.
+- When no rule or tool can settle the request, the plan is to escalate with \
+flag_for_human_review under ESC-7 (no rule covers the request).
 
 Write only the bullets. Do not decide the request."""

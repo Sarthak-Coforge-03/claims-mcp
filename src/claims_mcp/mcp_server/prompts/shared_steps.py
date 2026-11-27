@@ -10,7 +10,7 @@ PROBATION_DAYS = 90
 
 # The template was picked from the request's wording, so the tool results can still disagree.
 UNMATCHED_RESULT_STEP = """If a tool result fits none of the steps above, this template doesn't fit
-the request: decide from the tool results instead, and escalate if unsure."""
+the request: decide from the tool results instead. If they settle nothing, escalate with ESC-7."""
 
 
 def build_request_block(

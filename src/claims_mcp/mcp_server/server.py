@@ -43,8 +43,8 @@ RequestArgument = Annotated[
 EscalationReasonArgument = Annotated[
     str,
     Field(
-        description="Why a human must decide: the rule ID first, then the facts behind it, "
-        'e.g. "ESC-4: hired 2026-10-01, under 90 days".'
+        description="Why a human must decide: the rule ID first (ESC-7 if no rule covers the "
+        'request), then the facts behind it, e.g. "ESC-4: hired 2026-10-01, under 90 days".'
     ),
 ]
 ItemArgument = Annotated[
@@ -153,10 +153,11 @@ def check_request_eligibility(
 @mcp.tool(
     description=(
         "Use to hand a request to a human instead of deciding it, whenever an ESC rule applies "
-        "or the case is unclear. Never guess: escalate. Call it once per request, then stop "
-        "calling tools. This saves a record (a side effect) and returns its escalation_id, "
-        "created_at and status; cite the escalation_id in the reply. An unknown employee ID is "
-        "still accepted (ESC-1). An error means request or reason was empty."
+        "or the case is unclear; if no rule covers the request, use ESC-7. Never guess: "
+        "escalate. Call it once per request, then stop calling tools. This saves a record (a "
+        "side effect) and returns its escalation_id, created_at and status; cite the "
+        "escalation_id in the reply. An unknown employee ID is still accepted (ESC-1). An error "
+        "means request or reason was empty."
     )
 )
 def flag_for_human_review(

@@ -7,7 +7,7 @@ Paths are relative to the working directory: the repo root on the host, /app in 
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     model_deployment: str = "claude-opus-5-5-fast"
     # Opus 5.5 always thinks; effort ("low".."max") sets how much. Its default is "medium".
     model_effort: str = "medium"
+    # Most THINK → ACT → OBSERVE cycles per run; the longest scenario (lookup, eligibility,
+    # escalation, then the finishing THINK) fits in 5. ge=1 rejects 0 when settings load.
+    max_react_steps: int = Field(default=5, ge=1)
 
 
 @lru_cache

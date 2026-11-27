@@ -2,7 +2,7 @@
 
 An internal **IT equipment request handler**. An MCP server exposes tools over mock employee and policy data. A ReAct agent then uses those tools to approve or deny equipment requests, or to escalate unclear ones to a human reviewer.
 
-> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent is not built yet.
+> Status: the MCP server (4 tools, 3 prompt templates, Streamable HTTP) is done. The agent's ReAct loop runs end to end; its plan and reflection steps are not built yet.
 
 ## Prerequisites
 
@@ -82,6 +82,7 @@ Settings are read from environment variables, or from a `.env` file in the repo 
 | `CLAIMS_MCP_FOUNDRY_API_KEY` | (none) | API key for that resource; set in `.env` only |
 | `CLAIMS_MCP_MODEL_DEPLOYMENT` | `claude-opus-5-5-fast` | Foundry deployment the host agent calls |
 | `CLAIMS_MCP_MODEL_EFFORT` | `medium` | How much the model thinks (`low` … `max`) |
+| `CLAIMS_MCP_MAX_REACT_STEPS` | `5` | Most THINK → ACT → OBSERVE cycles before the agent stops (at least 1) |
 
 Paths are relative to the working directory: the repo root on the host, `/app` in Docker.
 
@@ -103,6 +104,29 @@ uv run python -m claims_mcp.client.smoke_client
 
 To inspect it by hand, run `npx @modelcontextprotocol/inspector`. Pick the **Streamable HTTP**
 transport, enter the URL `http://localhost:8000/mcp`, then use the Tools and Prompts tabs.
+
+## Running the agent
+
+The host agent (`src/claims_mcp/host/`) keeps one shared `AgentState` for the whole run. Each
+phase is its own model call, with its own system prompt, and sees only a view of that state:
+- **THINK** (structured output, no tools) sees the request, today's date, the tool catalog and
+  every earlier step's observation. It continues with one next action, or finishes with the
+  final answer. It is the only phase that chooses where the run goes.
+- **ACT** (with the tools) sees the request and THINK's next action, and makes that one tool
+  call. A reply without exactly one call is recorded as an action error; the run continues.
+- **OBSERVE** (no tools) sees the call and its raw result, and states what the result establishes.
+
+ACT → OBSERVE → THINK is fixed by code. The run stops when THINK finishes, or after
+`CLAIMS_MCP_MAX_REACT_STEPS` cycles. The trace is printed from the finished state.
+
+It needs the Foundry settings in `.env` (see Configuration) and a running server:
+
+```bash
+uv run python -m claims_mcp.host.llm_smoke     # one model call, no tools: checks the LLM wiring
+docker compose up -d --wait mcp_server
+uv run python -m claims_mcp.host.run_demo      # scenario 1, prints Thought / Action / Observation
+docker compose down
+```
 
 ## Tests and coverage
 
@@ -128,7 +152,8 @@ src/claims_mcp/
   backend/          business domain, no MCP: models/, repositories/ (base/ + json/; SQL optional later), services/
   mcp_server/       MCP server exposing backend services as tools
   client/           MCP client code; smoke check: uv run python -m claims_mcp.client.smoke_client
-  agent/            (coming) ReAct agent; talks to the backend only through MCP
+  host/             ReAct agent: llm/ adapter, tools/ MCP gateway, state/, react/ nodes + loop,
+                    system_prompts/; talks to the backend only through MCP
 data/               mock data (employees.json, policies.json)
 tests/              unit tests, mirroring src/ (tests/backend/...); test doubles in tests/fakes/
 Dockerfile          dev image (multi-stage: base → dev)

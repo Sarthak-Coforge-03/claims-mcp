@@ -66,6 +66,7 @@ def build_eligibility_service(
         role="standard",
         item_policies=[
             ItemPolicy(
+                policy_rule_id="POL-STD-LAPTOP",
                 item="laptop",
                 max_held=1,
                 refresh_interval_months=STANDARD_LAPTOP_REFRESH_MONTHS,
@@ -95,6 +96,15 @@ def test_check_eligibility_laptop_older_than_interval_returns_elg_2():
     assert eligibility.rule_id == EligibilityRule.ELG_2
 
 
+def test_check_eligibility_entitled_item_reports_policy_rule_id():
+    """An approvable laptop request reports the policy row it was judged by: POL-STD-LAPTOP."""
+    eligibility_service = build_eligibility_service(laptops_issued_on=[years_before_today(5)])
+
+    eligibility = eligibility_service.check_request_eligibility("E100", "laptop")
+
+    assert eligibility.policy_rule_id == "POL-STD-LAPTOP"
+
+
 def test_check_eligibility_laptop_exactly_on_anniversary_returns_elg_2():
     """A laptop issued exactly 4 years ago today has reached 48 months: the anniversary counts."""
     eligibility_service = build_eligibility_service(laptops_issued_on=[years_before_today(4)])
@@ -116,6 +126,7 @@ def test_check_eligibility_laptop_too_recent_returns_elg_3_with_eligible_from_da
         item="laptop",
         is_eligible=False,
         rule_id=EligibilityRule.ELG_3,
+        policy_rule_id="POL-STD-LAPTOP",
         held_count=1,
         max_held=1,
         refresh_interval_months=STANDARD_LAPTOP_REFRESH_MONTHS,

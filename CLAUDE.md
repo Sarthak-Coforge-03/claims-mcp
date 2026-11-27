@@ -5,14 +5,14 @@ Guidance for Claude Code (claude.ai/code) in this repository.
 ## What this is
 An internal **IT equipment request handler**: an MCP server over mock employee/policy data, plus a ReAct agent (MCP client, Claude via `anthropic` SDK) that approves, denies, or escalates requests. Repo name says "claims" but the domain is equipment requests.
 
-## Target architecture (in progress — update as it lands)
-- MCP tools in `mcp_server/server.py`, each a thin wrapper over a unit-tested backend service method (`get_employee_info` → `EmployeeService`; the rest to come):
-  - `get_employee_info(employee_id)` → role, tenure, equipment on file
-  - `get_policy_limits(role)` → eligible items and refresh intervals
-  - `check_request_eligibility(employee_id, item)` → within policy or not
+## Architecture (server done; agent next — update as it lands)
+- MCP tools in `mcp_server/server.py`, each a thin wrapper over a unit-tested backend service (Employee/Policy/Eligibility/EscalationService), with agent-facing `description=` and `Annotated` argument descriptions:
+  - `get_employee_info(employee_id)` → role, hire_date, equipment on file
+  - `get_policy_limits(role)` → item policies (policy_rule_id, max_held, refresh_interval_months)
+  - `check_request_eligibility(employee_id, item)` → rule_id (ELG-1/2/3, DEN-2, ESC-2) + policy_rule_id
   - `flag_for_human_review(employee_id, request, reason)` → side-effecting escalation
-- Agent: explicit Thought → Action → Observation trace, then a reflection pass checking the draft against tool observations before finalizing. Escalate ambiguous/out-of-policy cases rather than guessing.
-- Policy rules and escalation triggers are defined in `docs/requirements.md`.
+- MCP prompts: templates for known scenarios only (`replacement_request`, `new_item_request`, `exception_request`, built in `mcp_server/prompts/`; shared opening checks ESC-1/3/4 in `shared_steps.py`, bullets not numbers). No match → the planner works from the tool descriptions.
+- Agent: explicit Thought → Action → Observation trace, then a reflection pass checking the draft against tool observations before finalizing. Escalate ambiguous/out-of-policy cases rather than guessing. Rule IDs (POL/ELG/ESC/DEN) are defined in `docs/requirements.md`.
 
 ## Conventions
 - **TDD:** write the failing test first, then the code to make it pass. Build order: test → plain function → wrap as MCP tool → call via client. Unit tests hit functions directly, not the MCP protocol; cover normal and edge cases (e.g. unknown employee ID).
@@ -27,4 +27,4 @@ An internal **IT equipment request handler**: an MCP server over mock employee/p
 - Coverage (pytest-cov, branch) prints on every run; HTML report: `uv run pytest --cov-report=html` → `htmlcov/`
 - Lint/format (ruff, config in `pyproject.toml`): `uv run ruff check --fix . && uv run ruff format .`
 
-Python 3.12, `uv_build`. Config: `settings.py` (pydantic-settings, `CLAIMS_MCP_*` env vars, see `.env.example`). Layers in `src/claims_mcp/`: `backend/` (`models/`, `repositories/base/` ABCs + `repositories/json/` impls, SQL optional later; `services/`; never imports MCP; test fakes live in `tests/fakes/`) · `mcp_server/` (MCP adapter; run: `python -m claims_mcp.mcp_server.server`) · `client/` (MCP client code; smoke check: `uv run python -m claims_mcp.client.smoke_client`) · `agent/` (later). `client/` and `agent/` reach the backend only via MCP. One class per file, base classes in their own file, no folder per class.
+Python 3.12, `uv_build`. Config: `settings.py` (pydantic-settings, `CLAIMS_MCP_*` env vars, see `.env.example`). Layers in `src/claims_mcp/`: `backend/` (`models/`, `repositories/base/` ABCs + `repositories/json/` impls, SQL optional later; `services/`; never imports MCP; test fakes live in `tests/fakes/`) · `mcp_server/` (MCP adapter over Streamable HTTP at `http://localhost:8000/mcp`; run: `uv run python -m claims_mcp.mcp_server.server`, Docker: `docker compose up -d mcp_server`) · `client/` (MCP client code; smoke check, server running: `uv run python -m claims_mcp.client.smoke_client`) · `agent/` (later). `client/` and `agent/` reach the backend only via MCP. One class per file, base classes in their own file, no folder per class.

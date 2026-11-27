@@ -1,4 +1,4 @@
-"""EligibilityResult: what check_request_eligibility returns (docs/requirements.md §7)."""
+"""EligibilityResult: what check_request_eligibility returns (docs/requirements.md section 7)."""
 
 from datetime import date
 
@@ -17,6 +17,7 @@ class EligibilityResult(BaseModel):
     item: str
     is_eligible: bool
     rule_id: EligibilityRule
+    policy_rule_id: str | None  # the POL-* row applied (cited on approval), None if no policy
     held_count: int
     max_held: int | None
     refresh_interval_months: int | None

@@ -10,7 +10,14 @@ def build_manager_role_policy() -> RolePolicy:
     """Return a manager policy with one rule: a phone, max 1, every 24 months."""
     return RolePolicy(
         role="manager",
-        item_policies=[ItemPolicy(item="phone", max_held=1, refresh_interval_months=24)],
+        item_policies=[
+            ItemPolicy(
+                policy_rule_id="POL-MGR-PHONE",
+                item="phone",
+                max_held=1,
+                refresh_interval_months=24,
+            )
+        ],
     )
 
 

@@ -1,6 +1,6 @@
 # Docker Compose: describes how to run containers for this project, so you type
 # `docker compose run --rm dev <command>` instead of a long `docker run ...` line.
-# One service for now; add more (e.g. a separate server or agent) only when needed.
+# Two services: "dev" for tests and one-off commands, "mcp_server" for the long-running server.
 
 services:
   # "dev" is the container we develop and test in.
@@ -17,7 +17,45 @@ services:
       # host are visible immediately, with no rebuild. Rebuild only when dependencies change.
       # The venv lives in /opt/venv (see Dockerfile), so this mount does not hide it.
       - .:/app
+    environment:
+      # Clients in this container reach the server by its service name, not localhost:
+      # compose puts both services on one network where "mcp_server" resolves to that container.
+      # No depends_on: plain test runs shouldn't start the server. Start it with `up -d` first.
+      CLAIMS_MCP_SERVER_URL: http://mcp_server:8000/mcp
     # Later, at the agent step, the API key gets loaded from a local env file here, e.g.:
     # env_file:
     #   - path: .env
     #     required: false
+
+  # "mcp_server" runs the MCP server over Streamable HTTP until stopped.
+  # Start: `docker compose up -d mcp_server` · logs: `docker compose logs -f mcp_server`
+  # Stop: `docker compose down`
+  mcp_server:
+    # Same image as dev (built once); only the command differs.
+    build:
+      context: .
+      target: dev
+    image: claims-mcp-dev
+    volumes:
+      - .:/app
+    command: ["uv", "run", "python", "-m", "claims_mcp.mcp_server.server"]
+    environment:
+      # Listen on all interfaces inside the container, otherwise only the container itself
+      # could connect and neither dev nor the host would reach it.
+      CLAIMS_MCP_SERVER_HOST: 0.0.0.0
+    ports:
+      # host:container. Bound to 127.0.0.1 so only this machine can connect: with 0.0.0.0 the
+      # SDK doesn't switch on DNS-rebinding protection, so it must not be open to the network.
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      # The image has no curl, so Python asks the /health route; a non-200 or no answer fails.
+      test:
+        - CMD
+        - uv
+        - run
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/health')
+      interval: 10s
+      timeout: 5s
+      retries: 3

@@ -1,14 +1,10 @@
-"""JsonEmployeeRepository: reads employees from data/employees.json (temporary until the ORM)."""
+"""JsonEmployeeRepository: reads employees from a JSON file (path set in claims_mcp.settings)."""
 
 import json
 from pathlib import Path
 
 from claims_mcp.backend.models.employee_info import EmployeeInfo
 from claims_mcp.backend.repositories.base.employee_repository_base import EmployeeRepositoryBase
-
-# data/ sits at the repository root. Going up from this file:
-#   parents[0] json/ → [1] repositories/ → [2] backend/ → [3] claims_mcp/ → [4] src/ → [5] root
-DEFAULT_EMPLOYEES_FILE = Path(__file__).resolve().parents[5] / "data" / "employees.json"
 
 
 class JsonEmployeeRepository(EmployeeRepositoryBase):

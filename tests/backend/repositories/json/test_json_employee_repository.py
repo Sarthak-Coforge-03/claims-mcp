@@ -5,7 +5,7 @@ from datetime import date
 
 import pytest
 
-from claims_mcp.backend.repositories.json_employee_repository import JsonEmployeeRepository
+from claims_mcp.backend.repositories.json.json_employee_repository import JsonEmployeeRepository
 
 
 @pytest.fixture

@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 
 from claims_mcp.backend.models.role_policy import RolePolicy
-from claims_mcp.backend.repositories.policy_repository_base import PolicyRepositoryBase
+from claims_mcp.backend.repositories.base.policy_repository_base import PolicyRepositoryBase
 
 # data/ sits at the repository root. Going up from this file:
-#   parents[0] repositories/ → [1] backend/ → [2] claims_mcp/ → [3] src/ → [4] repository root
-DEFAULT_POLICIES_FILE = Path(__file__).resolve().parents[4] / "data" / "policies.json"
+#   parents[0] json/ → [1] repositories/ → [2] backend/ → [3] claims_mcp/ → [4] src/ → [5] root
+DEFAULT_POLICIES_FILE = Path(__file__).resolve().parents[5] / "data" / "policies.json"
 
 
 class JsonPolicyRepository(PolicyRepositoryBase):

@@ -1,7 +1,7 @@
 """InMemoryPolicyRepository: serves role policies from a list in memory (tests, quick dev runs)."""
 
 from claims_mcp.backend.models.role_policy import RolePolicy
-from claims_mcp.backend.repositories.policy_repository_base import PolicyRepositoryBase
+from claims_mcp.backend.repositories.base.policy_repository_base import PolicyRepositoryBase
 
 
 class InMemoryPolicyRepository(PolicyRepositoryBase):

@@ -1,7 +1,7 @@
 """PolicyService: role policy lookups, independent of where policies are stored."""
 
 from claims_mcp.backend.models.role_policy import RolePolicy
-from claims_mcp.backend.repositories.policy_repository_base import PolicyRepositoryBase
+from claims_mcp.backend.repositories.base.policy_repository_base import PolicyRepositoryBase
 
 
 class PolicyService:

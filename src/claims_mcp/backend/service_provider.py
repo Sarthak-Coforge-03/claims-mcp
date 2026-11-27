@@ -5,11 +5,11 @@ Callers such as the MCP tools ask this module for a service and never construct 
 
 from functools import lru_cache
 
-from claims_mcp.backend.repositories.json_employee_repository import (
+from claims_mcp.backend.repositories.json.json_employee_repository import (
     DEFAULT_EMPLOYEES_FILE,
     JsonEmployeeRepository,
 )
-from claims_mcp.backend.repositories.json_policy_repository import (
+from claims_mcp.backend.repositories.json.json_policy_repository import (
     DEFAULT_POLICIES_FILE,
     JsonPolicyRepository,
 )

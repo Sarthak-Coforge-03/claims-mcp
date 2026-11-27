@@ -1,7 +1,7 @@
 """EmployeeService: employee lookups, independent of where employee data is stored."""
 
 from claims_mcp.backend.models.employee_info import EmployeeInfo
-from claims_mcp.backend.repositories.employee_repository_base import EmployeeRepositoryBase
+from claims_mcp.backend.repositories.base.employee_repository_base import EmployeeRepositoryBase
 
 
 class EmployeeService:

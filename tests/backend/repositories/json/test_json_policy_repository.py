@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from claims_mcp.backend.repositories.json_policy_repository import JsonPolicyRepository
+from claims_mcp.backend.repositories.json.json_policy_repository import JsonPolicyRepository
 
 
 @pytest.fixture

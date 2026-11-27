@@ -5,9 +5,8 @@ from datetime import date
 from pydantic import BaseModel
 
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
-from claims_mcp.host.state.agent_stop_reason import AgentStopReason
+from claims_mcp.host.state.enums import AgentStopReason, ReactPhase
 from claims_mcp.host.state.plan import Plan
-from claims_mcp.host.state.react_phase import ReactPhase
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.reflection import Reflection
 from claims_mcp.host.state.request_decision import RequestDecision

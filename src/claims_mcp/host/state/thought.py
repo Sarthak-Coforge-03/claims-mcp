@@ -2,8 +2,8 @@
 
 from pydantic import BaseModel, Field
 
+from claims_mcp.host.state.enums import ThoughtDecision
 from claims_mcp.host.state.request_decision import RequestDecision
-from claims_mcp.host.state.thought_decision import ThoughtDecision
 
 
 class Thought(BaseModel):

@@ -2,8 +2,8 @@
 
 Needs the Foundry settings in .env and a running server. Run:
     docker compose up -d --wait mcp_server
-    uv run python -m claims_mcp.host.run_demo                       # scenario 1
-    uv run python -m claims_mcp.host.run_demo "Employee E004: ..."  # any other request
+    uv run python -m claims_mcp.host.agent.run_demo                       # scenario 1
+    uv run python -m claims_mcp.host.agent.run_demo "Employee E004: ..."  # any other request
 """
 
 import sys
@@ -12,12 +12,12 @@ from datetime import date
 import anyio
 from mcp import Client
 
+from claims_mcp.host.agent.run_agent import run_agent
+from claims_mcp.host.agent.trace_printer import print_trace
 from claims_mcp.host.gateways.templates.mcp_template_gateway import McpTemplateGateway
 from claims_mcp.host.gateways.tools.mcp_tool_gateway import McpToolGateway
 from claims_mcp.host.llm.adapter_provider import create_chat_model_adapter
-from claims_mcp.host.run_agent import run_agent
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.trace_printer import print_trace
 from claims_mcp.settings import get_settings
 
 # Scenario 1 in docs/requirements.md: expected approve under ELG-2 (POL-STD-MONITOR).

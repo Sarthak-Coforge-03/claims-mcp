@@ -12,11 +12,9 @@ from claims_mcp.host.llm.models.tool_call import ToolCall
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
 from claims_mcp.host.react.react_loop import run_react_loop
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.state.agent_stop_reason import AgentStopReason
+from claims_mcp.host.state.enums import AgentStopReason, RequestOutcome, ThoughtDecision
 from claims_mcp.host.state.request_decision import RequestDecision
-from claims_mcp.host.state.request_outcome import RequestOutcome
 from claims_mcp.host.state.thought import Thought
-from claims_mcp.host.state.thought_decision import ThoughtDecision
 from fakes.fake_chat_model_adapter import FakeChatModelAdapter
 from fakes.fake_tool_gateway import FakeToolGateway
 

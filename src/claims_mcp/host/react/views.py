@@ -11,8 +11,8 @@ import json
 from claims_mcp.host.llm.models.tool_call import ToolCall
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
 from claims_mcp.host.state.agent_state import AgentState
+from claims_mcp.host.state.enums import PlanSource
 from claims_mcp.host.state.plan import Plan
-from claims_mcp.host.state.plan_source import PlanSource
 from claims_mcp.host.state.react_step import ReActStep
 
 NO_STEPS_YET = "Steps so far: none yet."

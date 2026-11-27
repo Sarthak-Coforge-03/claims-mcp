@@ -1,7 +1,7 @@
 """Smoke check: one real model call through the adapter, no tools, to prove the LLM wiring works.
 
 Confirms the Foundry resource, API key and deployment before the ReAct loop depends on them. Run:
-    uv run python -m claims_mcp.host.llm_smoke
+    uv run python -m claims_mcp.host.llm.llm_smoke
 """
 
 from claims_mcp.host.llm.adapter_provider import create_chat_model_adapter

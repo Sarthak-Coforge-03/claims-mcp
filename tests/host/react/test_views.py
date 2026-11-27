@@ -10,11 +10,10 @@ from claims_mcp.host.llm.models.tool_result import ToolResult
 from claims_mcp.host.llm.models.tool_spec import ToolSpec
 from claims_mcp.host.react.views import build_act_view, build_observe_view, build_think_view
 from claims_mcp.host.state.agent_state import AgentState
+from claims_mcp.host.state.enums import PlanSource, ThoughtDecision
 from claims_mcp.host.state.plan import Plan
-from claims_mcp.host.state.plan_source import PlanSource
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.thought import Thought
-from claims_mcp.host.state.thought_decision import ThoughtDecision
 
 LOOKUP_RESULT = '{"employee_id": "E001", "role": "standard", "hire_date": "2019-04-01"}'
 LOOKUP_OBSERVATION = "E001 is a standard employee hired 2019-04-01."

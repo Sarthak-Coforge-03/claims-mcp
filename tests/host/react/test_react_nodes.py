@@ -14,13 +14,15 @@ from claims_mcp.host.react.act_node import run_act_node
 from claims_mcp.host.react.observe_node import run_observe_node
 from claims_mcp.host.react.think_node import run_think_node
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.state.agent_stop_reason import AgentStopReason
-from claims_mcp.host.state.react_phase import ReactPhase
+from claims_mcp.host.state.enums import (
+    AgentStopReason,
+    ReactPhase,
+    RequestOutcome,
+    ThoughtDecision,
+)
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.request_decision import RequestDecision
-from claims_mcp.host.state.request_outcome import RequestOutcome
 from claims_mcp.host.state.thought import Thought
-from claims_mcp.host.state.thought_decision import ThoughtDecision
 from fakes.fake_chat_model_adapter import FakeChatModelAdapter
 from fakes.fake_tool_gateway import FakeToolGateway
 

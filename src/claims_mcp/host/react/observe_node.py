@@ -5,7 +5,7 @@ from claims_mcp.host.llm.models.conversation import Conversation
 from claims_mcp.host.react.prompts.observe_system_prompt import OBSERVE_SYSTEM_PROMPT
 from claims_mcp.host.react.views import build_observe_view
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.state.react_phase import ReactPhase
+from claims_mcp.host.state.enums import ReactPhase
 
 
 async def run_observe_node(state: AgentState, adapter: ChatModelAdapterBase) -> None:

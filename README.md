@@ -141,10 +141,10 @@ state: the plan, each step, the reflection, then the final decision.
 It needs the Foundry settings in `.env` (see Configuration) and a running server:
 
 ```bash
-uv run python -m claims_mcp.host.llm_smoke     # one model call, no tools: checks the LLM wiring
+uv run python -m claims_mcp.host.llm.llm_smoke     # one model call, no tools: checks the LLM wiring
 docker compose up -d --wait mcp_server
-uv run python -m claims_mcp.host.run_demo      # scenario 1: prints the plan, then each step
-uv run python -m claims_mcp.host.run_demo "Employee E004: I need three monitors."   # any request
+uv run python -m claims_mcp.host.agent.run_demo   # scenario 1: plan, each step, reflection
+uv run python -m claims_mcp.host.agent.run_demo "Employee E004: I need three monitors."   # any request
 docker compose down
 ```
 
@@ -171,7 +171,8 @@ src/claims_mcp/
   settings.py       configuration from CLAIMS_MCP_* environment variables
   backend/          business domain, no MCP: models/, repositories/ (base/ + json/; SQL optional later), services/
   mcp_server/       MCP server exposing backend services as tools
-  host/             the agent: llm/ adapter, gateways/ (tools, templates, smoke_client), state/,
+  host/             the agent: agent/ (run_agent, run_demo, trace printer), llm/ adapter +
+                    llm_smoke, gateways/ (tools, templates, smoke_client), state/ (+ enums.py),
                     plan/ node, react/ nodes + loop, reflect/ critique + revise (each with its
                     own prompts/); talks to the backend only through MCP
 data/               mock data (employees.json, policies.json)

@@ -13,11 +13,10 @@ from claims_mcp.host.llm.models.tool_result import ToolResult
 from claims_mcp.host.reflect.run_reflection import run_reflection
 from claims_mcp.host.state.agent_state import AgentState
 from claims_mcp.host.state.critique import Critique
+from claims_mcp.host.state.enums import RequestOutcome, ThoughtDecision
 from claims_mcp.host.state.react_step import ReActStep
 from claims_mcp.host.state.request_decision import RequestDecision
-from claims_mcp.host.state.request_outcome import RequestOutcome
 from claims_mcp.host.state.thought import Thought
-from claims_mcp.host.state.thought_decision import ThoughtDecision
 from fakes.fake_chat_model_adapter import FakeChatModelAdapter
 
 DRAFT_DECISION = RequestDecision(

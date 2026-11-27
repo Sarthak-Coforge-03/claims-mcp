@@ -11,8 +11,8 @@ from claims_mcp.host.llm.models.model_turn import ModelTurn
 from claims_mcp.host.plan.plan_node import run_plan_node
 from claims_mcp.host.plan.template_selection import TemplateSelection
 from claims_mcp.host.state.agent_state import AgentState
+from claims_mcp.host.state.enums import PlanSource
 from claims_mcp.host.state.plan import Plan
-from claims_mcp.host.state.plan_source import PlanSource
 from fakes.fake_chat_model_adapter import FakeChatModelAdapter
 from fakes.fake_template_gateway import FakeTemplateGateway
 

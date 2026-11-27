@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel
 
-from claims_mcp.host.state.plan_source import PlanSource
+from claims_mcp.host.state.enums import PlanSource
 
 
 class Plan(BaseModel):

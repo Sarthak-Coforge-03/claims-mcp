@@ -11,8 +11,8 @@ from claims_mcp.host.plan.prompts.select_template_system_prompt import (
 from claims_mcp.host.plan.prompts.write_plan_system_prompt import WRITE_PLAN_SYSTEM_PROMPT
 from claims_mcp.host.plan.template_selection import TemplateSelection
 from claims_mcp.host.state.agent_state import AgentState
+from claims_mcp.host.state.enums import PlanSource
 from claims_mcp.host.state.plan import Plan
-from claims_mcp.host.state.plan_source import PlanSource
 
 
 async def run_plan_node(

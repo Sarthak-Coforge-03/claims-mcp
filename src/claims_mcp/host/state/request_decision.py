@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from claims_mcp.host.state.request_outcome import RequestOutcome
+from claims_mcp.host.state.enums import RequestOutcome
 
 
 class RequestDecision(BaseModel):

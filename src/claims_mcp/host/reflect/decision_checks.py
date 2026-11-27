@@ -5,7 +5,7 @@ mistakes that are certain from the state alone, without asking a model.
 """
 
 from claims_mcp.host.state.agent_state import AgentState
-from claims_mcp.host.state.request_outcome import RequestOutcome
+from claims_mcp.host.state.enums import RequestOutcome
 
 ESCALATION_TOOL_NAME = "flag_for_human_review"
 # Mirrors the rule tables in docs/requirements.md (sections 5 and 6).

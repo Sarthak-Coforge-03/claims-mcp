@@ -67,6 +67,9 @@ RUN uv sync --locked --no-install-project
 COPY README.md ./
 COPY src ./src
 COPY tests ./tests
+# The two seed data files (not escalations.json, which is runtime output). They seed the
+# claims_data volume in compose.yaml the first time it is created.
+COPY data/employees.json data/policies.json ./data/
 
 # Install the project itself (editable, pointing at /app/src). Dependencies are already cached above.
 RUN uv sync --locked

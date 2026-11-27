@@ -40,6 +40,11 @@ services:
     image: claims-mcp-dev
     volumes:
       - .:/app
+      # Named volume over data/: employees, policies and escalations persist across `down`/`up`
+      # until the volume is deleted (`docker compose down -v`). On first use Docker seeds it
+      # from the image's data/ (the two JSON files). Host edits to data/*.json no longer reach
+      # this container; delete the volume to re-seed after rebuilding.
+      - claims_data:/app/data
     command: ["uv", "run", "python", "-m", "claims_mcp.mcp_server.server"]
     environment:
       # Listen on all interfaces inside the container, otherwise only the container itself
@@ -92,3 +97,8 @@ services:
     # Keep stdin open and give the container a terminal: the questionary prompts need both.
     stdin_open: true
     tty: true
+
+# Named volumes are managed by Docker and outlive containers. List them with `docker volume ls`
+# (the real name is prefixed with the project: claims-mcp_claims_data).
+volumes:
+  claims_data:
